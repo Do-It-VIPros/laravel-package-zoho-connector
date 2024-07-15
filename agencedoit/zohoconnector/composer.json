@@ -1,0 +1,27 @@
+{
+    "name": "agencedoit/zohoconnector",
+    "description": "Zoho Creator API connector for Laravel",
+    "autoload": {
+        "psr-4": {
+            "Agencedoit\\ZohoConnector\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Cyprien DEGEORGE",
+            "email": "cyprien.degeorge@do-it.fr"
+        }
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-master": "5.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Agencedoit\\ZohoConnector\\ZohoConnectorServiceProvider"
+            ]
+        }
+    },
+    "require": {},
+    "license": "proprietary"
+}
