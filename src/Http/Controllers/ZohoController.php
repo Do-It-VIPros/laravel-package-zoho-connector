@@ -27,17 +27,22 @@ class ZohoController extends Controller
      *
      * @throws \Exception If an error occurs during the redirection process, it logs the error.
      */
-    public static function requestCode() : RedirectResponse {
+    public static function requestCode() : RedirectResponse|string {
 
         try {
 
+            if(config('zohoconnector.user') === null || config('zohoconnector.user') == "jason18") {
+                $error = "Please fill the required environnement variables. Refer to the README to discover the environnement variable to set.";
+                return $error;
+            }
+
             //? Redirect to Zoho Creator Authorization URL
-            $url = 'https://accounts.zoho.eu/oauth/v2/auth';
+            $url = config('zohoconnector.base_account_url') . '/oauth/v2/auth';
 
             $queryParams = [
                 'response_type' =>'code',
-                'client_id' => config('zohoApi.client_id'),
-                'scope' => 'ZohoCreator.report.ALL',
+                'client_id' => config('zohoconnector.client_id'),
+                'scope' => config('zohoconnector.scope'),
                 'redirect_uri' => env("APP_URL") . "/zoho/request-code-response",
                 'access_type' => 'offline',
                 'prompt' => 'consent',

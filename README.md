@@ -1,13 +1,30 @@
 
 # Laravel package - Zoho Connector
 
-## Table des matières
-- [Laravel package - Zoho Connector](#Laravel package - Zoho Connector)
-  - [Table des matières](#table-of-contents)
+## Table of contents
+- [Laravel package - Zoho Connector](#Laravel-package---Zoho-Connector)
+  - [Table of contents](#Table-of-contents)
   - [General](#general)
+  - [Configuration](#Configuration)
+    - [Environnements variables](#Environnements-variables)
+    - [Initalize](#Initalize)
 
 ## General
-Package pour Laravel afin de gérer une connection à l'API Creator
+
+Laravel Package to manage a connexion to Zoho Creator API
+
+## Configuration
+### Environnements variables
+
+|Identifier|Description|Availables values|Commentary|
+| :--------------- |:--------------- |:---------------:| ----------------:|
+|ZOHO_ACCOUNT_DOMAIN|Zoho domain name where your Zoho account is registred | eu, com, jp, in, com.au ...| Default value eu |
+|ZOHO_CLIENT_ID| The client ID from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value 1000.8cb99dxxxxxxxxxxxxx9be93|
+|ZOHO_CLIENT_SECRET| Your client secret from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value 9b8xxxxxxxxxxxxxxxf|
+|ZOHO_SCOPE| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value ZohoCreator.report.ALL |
+|ZOHO_USER| Your Zoho user name | - | Default value jason18|
+|ZOHO_APP_NAME| Your Zoho App identifier | - | Default value zylker-store|
+|ZOHO_REFRESH_TOKEN| THe generated refresh token (see [Initalize](#Initalize) ) | - | No Default value |
 
 ## Todo
- - Démarrer le projet
+ - Start the project
