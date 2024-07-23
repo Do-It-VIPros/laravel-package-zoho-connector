@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('zoho_connector_token', function (Blueprint $table) {
+        Schema::create('zoho_connector_tokens', function (Blueprint $table) {
             $table->id();
             $table->string('token');
             $table->string('refresh_token');

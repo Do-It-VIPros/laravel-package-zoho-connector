@@ -57,6 +57,8 @@
             </table>
 
             <b> Be sure than your ZOHO_CLIENT_ID has been well parametrized on <a href="https://api-console.zoho.{{ env('ZOHO_ACCOUNT_DOMAIN') }}">the zoho API console</a> with <u>{{ env("APP_URL") }}/zoho/request-code-response</u> as authorized redirect URI. </b>
+        
+            Once all is set, go on <a href='{{ env("APP_URL") }}/zoho/request-code-response'>Request code page</a> to start the Service.
         @endif
     </body>
 </html>
