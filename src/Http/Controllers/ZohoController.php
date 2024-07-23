@@ -101,7 +101,7 @@ class ZohoController extends Controller
     }
 
     public static function test() {
-        return ZohoCreatorApi::test();
+        return ZohoCreatorApi::get();
     }
 
     public static function test_connexion() {

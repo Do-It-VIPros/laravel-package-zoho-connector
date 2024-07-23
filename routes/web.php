@@ -9,4 +9,5 @@ if(!(new ZohoCreatorService)->isReady()) {
 }
 if(config('app.env') != 'production') {
     Route::get('/zoho/test', [ZohoController::class, 'test_connexion']);
+    Route::get('/zoho/wip', [ZohoController::class, 'test']);
 }

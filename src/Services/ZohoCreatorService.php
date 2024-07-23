@@ -16,6 +16,13 @@ class ZohoCreatorService {
 
     use ZohoServiceChecker;
 
+    private string $api_base_url;
+
+    public function __construct()
+    {
+        $this->api_base_url = config('zohoconnector.api_base_url') . "/api/v2.1/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name');
+    }
+
     public function isReady() : bool {
         return $this->getToken() !== null;
     }
@@ -119,6 +126,32 @@ class ZohoCreatorService {
             //? Log any exceptions that occur during token request
             Log::error('Error on token request (generateFirstToken function) ' . $e->getMessage());
             return false;
+        }
+    }
+
+    public function get() : array|null {
+
+        try {
+            $this->ZohoServiceCheck();
+
+            $report = "API_Marques";
+
+            $full_url = $this->api_base_url . '/report/' . $report;
+
+            //return ["url" => $full_url];
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Zoho-oauthtoken ' . $this->getToken(),
+            ])->get($full_url,
+                ['criteria' => 'active==true&&type=="VIPros"&&platform.test==false&&is_test==false'
+            ]);
+            if(!$response->successful()){
+                throw new Exception($response->status(), 404);
+            }
+            return $response->json();
+        } catch (Exception $e) {
+            Log::error('Error on ZohoCreatorService::get => ' . $e->getMessage());
+            return $e->getMessage();
         }
     }
 
