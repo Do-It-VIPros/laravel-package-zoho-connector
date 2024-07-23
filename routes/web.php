@@ -7,4 +7,6 @@ if(!(new ZohoCreatorService)->isReady()) {
     Route::get('/zoho/request-code', [ZohoController::class, 'requestCode']);
     Route::get('/zoho/request-code-response', [ZohoController::class, 'requestCodeResponse']);
 }
-Route::get('/zoho/test', [ZohoController::class, 'test']);
+if(config('app.env') != 'production') {
+    Route::get('/zoho/test', [ZohoController::class, 'test_connexion']);
+}

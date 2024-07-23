@@ -24,7 +24,6 @@ Laravel Package to manage a connexion to Zoho Creator API
 |ZOHO_SCOPE| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value : ZohoCreator.report.ALL |
 |ZOHO_USER| Your Zoho user name | - | Default value : jason18|
 |ZOHO_APP_NAME| Your Zoho App identifier | - | Default value : zylker-store|
-|ZOHO_REFRESH_TOKEN| THe generated refresh token (see [Initalize](#Initalize) ) | - | No Default value |
 
 ### Initalize
 
@@ -32,16 +31,20 @@ First things first, you have to generate your Zoho API access on  [Zoho API cons
 The "Authorized Redirect URIs" have to be formed like that : APP_URL . /zoho/request-code-response (ex : http://localhost:8000/zoho/request-code-response)
 Once you have your access (client ID/secret...), please fill the env variables in your .env file as described in [Environnements variables](#Environnements-variables).
 Don't forget to fill the APP_URL env parameter.
+Check if the required informations are all set on the <APP_URL>/zoho/test (Only available on DEV environnement).
 When all is set, access to /zoho/request-code to generate your first access token. Since this is not done, you will not be able to use the zoho Service.
 
 ### Usage
 
+```php
+use ZohoCreatorApi;
 
+public static function test() {
+  return ZohoCreatorApi::get(/*TODO : complete required params*/);
+}
+
+```
 
 ## Todo
- - Save token access in BDD
- - Have a getToken function
- - Url to create token are blocked after creation
- - Have a ZohoCreator Service
  - Create the GET function
  - Create the GET Bulk function

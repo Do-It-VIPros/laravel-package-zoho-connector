@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\View;
 
 use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
 use Agencedoit\ZohoConnector\Services\ZohoCreatorService;
@@ -103,4 +104,7 @@ class ZohoController extends Controller
         return ZohoCreatorApi::test();
     }
 
+    public static function test_connexion() {
+        return View::make('zohoconnector::test_connexion', ['name' => 'James']);
+    }
 }
