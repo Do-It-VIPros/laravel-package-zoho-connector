@@ -1,5 +1,7 @@
 <?php
 
+//$aliases['ZohoCreatorApi'] = Agencedoit\ZohoConnector\Facades\ZohoCreatorFacade::class;
+
 return [
 
     /*
@@ -23,5 +25,9 @@ return [
     'app_name' => env('ZOHO_APP_NAME', 'zylker-store'),
 
     'refresh_token' => env('ZOHO_REFRESH_TOKEN'),
+    
+    'aliases' => [
+        'ZohoCreatorApi' => Agencedoit\ZohoConnector\Facades\ZohoCreatorFacade::class
+    ],
 
 ];
