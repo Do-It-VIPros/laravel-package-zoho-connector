@@ -24,7 +24,7 @@ return [
 
     'app_name' => env('ZOHO_APP_NAME', 'zylker-store'),
 
-    'refresh_token' => env('ZOHO_REFRESH_TOKEN'),
+    'tokens_table_name' => 'zoho_connector_tokens',
     
     'aliases' => [
         'ZohoCreatorApi' => Agencedoit\ZohoConnector\Facades\ZohoCreatorFacade::class
