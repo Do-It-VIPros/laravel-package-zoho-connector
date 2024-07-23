@@ -7,6 +7,7 @@ use Agencedoit\ZohoConnector\Traits\ZohoServiceChecker;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 use \Datetime;
 use \DateInterval;
@@ -24,7 +25,7 @@ class ZohoCreatorService {
     }
 
     public function isReady() : bool {
-        return $this->getToken() !== null;
+        return Schema::hasTable(config('zohoconnector.tokens_table_name')) && $this->getToken() !== null;
     }
 
     private function getToken() : string|null {
