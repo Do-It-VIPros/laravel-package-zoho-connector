@@ -41,7 +41,7 @@
                     <tr>
                         <th>ZOHO_SCOPE</th>
                         <td>{{ env('ZOHO_SCOPE') }}</td>
-                        <td> ZohoCreator.report.AL</td>
+                        <td> ZohoCreator.report.ALL</td>
                     </tr>
                     <tr>
                         <th>ZOHO_USER</th>

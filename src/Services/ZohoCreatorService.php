@@ -130,7 +130,7 @@ class ZohoCreatorService {
         }
     }
 
-    public function get() : array|null {
+    public function get() : array|null|string {
 
         try {
             $this->ZohoServiceCheck();
