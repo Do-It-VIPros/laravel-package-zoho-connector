@@ -21,9 +21,10 @@ Laravel Package to manage a connexion to Zoho Creator API
 |ZOHO_ACCOUNT_DOMAIN|Zoho domain name where your Zoho account is registred | eu, com, jp, in, com.au ...| Default value : eu |
 |ZOHO_CLIENT_ID| The client ID from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 1000.8cb99dxxxxxxxxxxxxx9be93|
 |ZOHO_CLIENT_SECRET| Your client secret from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 9b8xxxxxxxxxxxxxxxf|
-|ZOHO_SCOPE| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value : ZohoCreator.report.ALL |
+|ZOHO_SCOPE| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ,ZohoCreator.bulk.CREATE ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value : ZohoCreator.report.READ |
 |ZOHO_USER| Your Zoho user name | - | Default value : jason18|
 |ZOHO_APP_NAME| Your Zoho App identifier | - | Default value : zylker-store|
+|ZOHO_BULK_DOWNLOAD_PATH| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
 
 ### Initalize
 
