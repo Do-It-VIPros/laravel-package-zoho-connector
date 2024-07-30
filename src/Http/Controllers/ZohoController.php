@@ -5,18 +5,12 @@ namespace Agencedoit\ZohoConnector\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 
-use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
 use Agencedoit\ZohoConnector\Services\ZohoCreatorService;
 use ZohoCreatorApi;
 
-use \Datetime;
-use \DateInterval;
 use \Exception;
 
 class ZohoController extends Controller
@@ -36,7 +30,7 @@ class ZohoController extends Controller
      *
      * @throws \Exception If an error occurs during the redirection process, it logs the error.
      */
-    public static function requestCode() : RedirectResponse|string {
+    public static function requestCode() : string|RedirectResponse {
 
         try {
             if(config('zohoconnector.user') === null || config('zohoconnector.user') == "jason18") {
@@ -61,7 +55,7 @@ class ZohoController extends Controller
             return redirect()->away($url . '?' . http_build_query($queryParams));
 
         }catch (Exception $e) {
-            Log::error('Erreur lors de la redirection vers Zoho: ' . $e->getMessage());
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return $e;
         }
 
@@ -80,7 +74,7 @@ class ZohoController extends Controller
      *
      * @throws \Exception If an error occurs during the redirection process, it logs the error.
      */
-    public static function requestCodeResponse(Request $request) : string {
+    public function requestCodeResponse(Request $request) : string|RedirectResponse {
 
         try {
             if($request->input('code') === null) {
@@ -91,17 +85,30 @@ class ZohoController extends Controller
                 //? Log error if process has failed
                 throw new Exception("Process failed. ZohoCreatorService is not ready", 404);
             }
-            return "Token generated. You can now close this page.";
+            return redirect()->action([ZohoController::class, 'test_connexion']);
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
-            Log::error('Error on token request (requestAccessToken function) ' . $e->getMessage());
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return $e->getMessage();
         }
 
     }
 
-    public static function test() {
-        return ZohoCreatorApi::get();
+    public function reset_tokens() : string|RedirectResponse {
+        try{
+            ZohoCreatorApi::resetTokens();
+            return redirect()->action([ZohoController::class, 'test_connexion']);
+        } catch (Exception $e) {
+            //? Log any exceptions that occur during token request
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return $e->getMessage();
+        }
+    }
+
+    public function test() {
+        //return ZohoCreatorApi::createBulk("API_Marques");
+        $bulk_id = "61757000036827074";
+        return ZohoCreatorApi::downloadBulk("API_Marques",$bulk_id);
     }
 
     public static function test_connexion() {
