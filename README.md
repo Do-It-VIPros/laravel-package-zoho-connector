@@ -13,39 +13,138 @@
 
 Laravel Package to manage a connexion to Zoho Creator API
 
+### Requirements
+
+To use the service and interact with the Zoho API you need to get a client_id and a client_secret on the [Zoho API console](https://api-console.zoho.com).
+- Click on "Add Client" on top right
+- Use "Server-based Applications"
+- Fill the informations :
+    - Client Name : Your App Name
+    - Homepage URL : You App URL
+    - Authorized Redirect URIs : <APP_URL>/zoho/request-code-response <= IMPORTANT
+- You'll get the required client_id and client_secret
+
+### Basics
+
+#### Creator
+
+  To interact with Zoho Creator, all is based on report. 
+
+  The Zoho API documentation is available [here](https://www.zoho.com/creator/help/api/v2.1/).
+
+  The version of the Zoho API is the v2.1 .
+
+#### CRM
+
+Comming soon.
+
 ## Configuration
 ### Environnements variables
 
-|Identifier|Description|Availables values|Commentary|
-| :--------------- |:--------------- |:---------------:| ----------------:|
-|ZOHO_ACCOUNT_DOMAIN|Zoho domain name where your Zoho account is registred | eu, com, jp, in, com.au ...| Default value : eu |
-|ZOHO_CLIENT_ID| The client ID from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 1000.8cb99dxxxxxxxxxxxxx9be93|
-|ZOHO_CLIENT_SECRET| Your client secret from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 9b8xxxxxxxxxxxxxxxf|
-|ZOHO_SCOPE| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ,ZohoCreator.bulk.CREATE ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value : ZohoCreator.report.READ |
-|ZOHO_USER| Your Zoho user name | - | Default value : jason18|
-|ZOHO_APP_NAME| Your Zoho App identifier | - | Default value : zylker-store|
-|ZOHO_BULK_DOWNLOAD_PATH| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
+|Identifier|Required|Description|Availables values|Commentary|
+| :--------------- |:--:|:--------------- |:---------------:| ----------------:|
+|ZOHO_ACCOUNT_DOMAIN|No|Zoho domain name where your Zoho account is registred | eu, com, jp, in, com.au ...| Default value : eu |
+|ZOHO_CLIENT_ID|Yes| The client ID from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 1000.8cb99dxxxxxxxxxxxxx9be93|
+|ZOHO_CLIENT_SECRET|Yes| Your client secret from https://api-console.zoho.<ZOHO_ACCOUNT_DOMAIN> | - | Default value : 9b8xxxxxxxxxxxxxxxf|
+|ZOHO_SCOPE|No| The scope for your client | ZohoCreator.report.ALL, ZohoCreator.report.READ,ZohoCreator.bulk.CREATE ... see [API doc](https://www.zoho.com/creator/help/api/v2.1/oauth-overview.html#scopes)  | Default value : ZohoCreator.report.READ |
+|ZOHO_USER|Yes| Your Zoho user name | - | Default value : jason18|
+|ZOHO_APP_NAME|Yes| Your Zoho App identifier | - | Default value : zylker-store|
+|ZOHO_BULK_DOWNLOAD_PATH|No| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
+|ZOHO_TOKENS_TABLE|No| tokens table name | - | Default value : zoho_connector_tokens |
+|ZOHO_BULK_TABLE|No| bulk process table name | - | Default value : zoho_bulk_processes |
 
 ### Initalize
 
-First things first, you have to generate your Zoho API access on  [Zoho API console](https://api-console.zoho.com). (check for the right domain)
-The "Authorized Redirect URIs" have to be formed like that : APP_URL . /zoho/request-code-response (ex : http://localhost:8000/zoho/request-code-response)
-Once you have your access (client ID/secret...), please fill the env variables in your .env file as described in [Environnements variables](#Environnements-variables).
-Don't forget to fill the APP_URL env parameter.
-Check if the required informations are all set on the <APP_URL>/zoho/test (Only available on DEV environnement).
-When all is set, access to /zoho/request-code to generate your first access token. Since this is not done, you will not be able to use the zoho Service.
+- Be sure to have the APP_URL env var set.
+- Get a client_id and a client_secret from ZOHO => [Requirements](#Requirements).
+- Fill the Environnements variables as described in [Environnements variables](#Environnements-variables).
+- On DEV environnement, you can go on <APP_URL>/zoho/test to check if all your environnement is ready. Then click on "Request code page" link to activate the 
+on DEV environnement).
+- If the service is ready. You can now [use the service](#usage).
 
-### Usage
+You can reset the service with the /zoho/reset-tokens route or by clicking the reset button on the /zoho/test page.
 
-```php
+### On Production environnement
+
+The /zoho/test page is not available.
+
+Go on /zoho/request-code to activate the service (Once the parameters are set obviously).
+
+The /zoho/reset-tokens is not available too. To reset tokens, truncate the ZOHO_TOKENS_TABLE.
+
+# Usage
+
+## Basic exemple
+
+``` php
 use ZohoCreatorApi;
 
 public static function test() {
-  return ZohoCreatorApi::get(/*TODO : complete required params*/);
+  return ZohoCreatorApi::get("my_report");
 }
 
 ```
 
+## Availables functions
+
+### Get from Report
+
+``` php
+ZohoCreatorApi::get(<report_name>,<criterias>="",&<cursor>="");
+```
+Return the found records as an array.
+
+This function has a 1000 records limit. If there is more the cursor variable will be filled.
+
+Check at ZohoCreatorApi::getAll() code function to see how handle the cursor and the loop.
+
+[See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
+
+### Get All from Report
+
+``` php
+ZohoCreatorApi::getAll(<report_name>,<criterias>="");
+```
+Return the found records as an array.
+
+This function may be very long. Look at the function to see who use it.
+
+[See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
+
+### Get by ID
+
+``` php
+ZohoCreatorApi::getByID(<report_name>,<object_id>);
+```
+Return the found record as an array.
+
+field_config is set to "all".
+
+### Create bulk
+
+``` php
+ZohoCreatorApi::createBulk(<report_name>,<criterias>="");
+```
+Create the bulk request.
+
+[See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
+
+### Read Bulk infos
+
+``` php
+ZohoCreatorApi::readBulk(<report_name>,<bulk_id>="");
+```
+Return the bulk request infos as an array.
+
+### Download bulk
+
+``` php
+ZohoCreatorApi::downloadBulk(<report_name>,<bulk_id>="");
+```
+Download the bulk request result in the ZOHO_BULK_DOWNLOAD_PATH.
+
 ## Todo
- - Create the GET function
- - Create the GET Bulk function
+ - Continue GET Bulk function (see for a callback)
+ - Create a table for created bulks and status
+ - Create Tests function
+ - Complete commentarys 

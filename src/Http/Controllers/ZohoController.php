@@ -26,11 +26,10 @@ class ZohoController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse Redirects the user to Zoho Creator's authorization page.
      *                                           If successful, user will be redirected back with an authorization code.
-     *                                           Otherwise, redirects to '/' on error.
      *
      * @throws \Exception If an error occurs during the redirection process, it logs the error.
      */
-    public static function requestCode() : string|RedirectResponse {
+    public function requestCode() : string|RedirectResponse {
 
         try {
             if(config('zohoconnector.user') === null || config('zohoconnector.user') == "jason18") {
@@ -70,7 +69,8 @@ class ZohoController extends Controller
      * 🚀 Store the returned code of requestCode() function
      * 📝 Context: Storage of the auth token.
      *
-     * @return string
+     * @return string in production env the page will just send an OK Sentence and the page will not be available any more
+     * @return RedirectResponse in all over environement to the test_connexion page
      *
      * @throws \Exception If an error occurs during the redirection process, it logs the error.
      */
@@ -85,7 +85,7 @@ class ZohoController extends Controller
                 //? Log error if process has failed
                 throw new Exception("Process failed. ZohoCreatorService is not ready", 404);
             }
-            return redirect()->action([ZohoController::class, 'test_connexion']);
+            return (config('app.env') != 'production' ? redirect()->action([ZohoController::class, 'test_connexion']): "Token is now generated, you can now leave this page." );
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
@@ -94,6 +94,20 @@ class ZohoController extends Controller
 
     }
 
+    
+    /**
+     * 🌐🔐 reset_tokens()
+     *
+     *  Reset of the created tokens
+     *
+     * 🚀 Launch a truncate of the database
+     * 📝 Context: Available only on dev environnement from /zoho/reset-tokens
+     *
+     * @return string if an error occured
+     * @return RedirectResponse to the test page
+     *
+     * @throws \Exception If an error occurs during the redirection process, it logs the error.
+     */
     public function reset_tokens() : string|RedirectResponse {
         try{
             ZohoCreatorApi::resetTokens();
@@ -105,13 +119,24 @@ class ZohoController extends Controller
         }
     }
 
+    /**
+     * 🌐🔐 test_connexion()
+     *
+     *  Show the CreatorService infos
+     *
+     * 🚀 Show the test_connexion page
+     * 📝 Context: Available only on dev environnement from /zoho/test
+     *
+     * @return View of the test page
+     *
+     */
+    public static function test_connexion() {
+        return View::make('zohoconnector::test_connexion');
+    }
+
     public function test() {
         //return ZohoCreatorApi::createBulk("API_Marques");
         $bulk_id = "61757000036827074";
         return ZohoCreatorApi::downloadBulk("API_Marques",$bulk_id);
-    }
-
-    public static function test_connexion() {
-        return View::make('zohoconnector::test_connexion', ['name' => 'James']);
     }
 }

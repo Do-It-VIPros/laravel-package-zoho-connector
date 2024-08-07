@@ -26,7 +26,7 @@ return [
 
     'app_name' => env('ZOHO_APP_NAME', 'zylker-store'),
 
-    'tokens_table_name' => 'zoho_connector_tokens',
+    'tokens_table_name' => env('ZOHO_TOKENS_TABLE', 'zoho_connector_tokens'),
 
     'bulk_download_path' => env('ZOHO_BULK_DOWNLOAD_PATH', storage_path("zohoconnector")),
 

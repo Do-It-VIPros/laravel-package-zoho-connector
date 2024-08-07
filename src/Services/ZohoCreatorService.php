@@ -4,24 +4,17 @@ namespace Agencedoit\ZohoConnector\Services;
 
 use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
 use Agencedoit\ZohoConnector\Traits\ZohoServiceChecker;
+use Agencedoit\ZohoConnector\Helpers\ZohoTokenManagement;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 
-use ZohoCreatorApi;
-
-use \Datetime;
-use \DateInterval;
 use \Exception;
 
-class ZohoCreatorService {
+class ZohoCreatorService extends ZohoTokenManagement {
 
     use ZohoServiceChecker;
-
-    private string $api_base_url;
-    private string $bulk_base_url;
 
     public function __construct()
     {
@@ -29,171 +22,125 @@ class ZohoCreatorService {
         $this->bulk_base_url = config('zohoconnector.bulk_base_url') . "/creator/v2.1/bulk/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/report/";
     }
 
-    public function isReady() : bool {
-        try {
-            return Schema::hasTable(config('zohoconnector.tokens_table_name')) && $this->getToken() !== null;
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    private function getToken() : string|null {
-        try{
-            //get a valid token
-            $token_line = ZohoConnectorToken::where('token_created_at', '<=', new DateTime('NOW'))
-                                            ->where('token_peremption_at', '>', new DateTime('NOW'))
-                                            ->first();
-            if($token_line != null) {
-                //Token already generated and available
-                return $token_line->token;
-            }
-            else if(sizeof(ZohoConnectorToken::all()) != 0) {
-                //No token valid but generated once
-                //Try to refresh the token 
-                $last_token = ZohoConnectorToken::orderBy('created_at', 'desc')->first();
-
-                return $this->refreshToken($last_token->refresh_token);
-            }
-            //no valid token found
-            return null;
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return null;
-        }
-    }
-
-    private function getHeaders() : array {
-        try {
-            return ['Authorization' => 'Zoho-oauthtoken ' . $this->getToken()];
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    private function registerToken($token_datas, $refresh_token=null) : void {
-        try{
-            $now = new DateTime('NOW');
-            $end_time = new DateTime('NOW');
-            $end_time->add(DateInterval::createFromDateString($token_datas['expires_in'] . ' second'));
-        
-            ZohoConnectorToken::create([
-                'token' => $token_datas['access_token'],
-                'refresh_token' => ($refresh_token != null ? $refresh_token : $token_datas['refresh_token']),
-                'token_created_at' => $now,
-                'token_peremption_at' => $end_time,
-                'token_duration' => $token_datas['expires_in'],
-            ]);
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-        }
-    }
-
-    private function refreshToken($refresh_token) : string|null {
-        try {
-            if($refresh_token === null) {
-                throw new Exception("No refresh token found", 404);    
-            }
-
-            //? Send request to Zoho OAuth2 token endpoint
-            $response = Http::asForm()->post(
-                config('zohoconnector.base_account_url') . '/oauth/v2/token',
-                [
-                    'grant_type' => 'refresh_token',
-                    'client_id' => config('zohoconnector.client_id'),
-                    'client_secret' => config('zohoconnector.client_secret'),
-                    'refresh_token' => $refresh_token,
-                    'redirect_uri' => env("APP_URL") . "/zoho/request-code-response",
-                ]
-            );
-
-            //? Handle successful response
-            if (!$response->successful()) {
-                //? Log error if request fails
-                throw new Exception($response->status(), 404);
-            }
-            
-            $this->registerToken($response->json(),$refresh_token);
-
-            if(!$this->isReady()){
-                //? Log error if process has failed
-                throw new Exception("Process failed. ZohoCreatorService is not ready", 404);
-            }
-            return $this->getToken();
-        } catch (Exception $e) {
-            //? Log any exceptions that occur during token request
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return null;
-        }
-    }
-
-    public function generateFirstToken($code) : bool {
-        try {
-            //? Send request to Zoho OAuth2 token endpoint
-            $response = Http::asForm()->post(
-                config('zohoconnector.base_account_url') . '/oauth/v2/token',
-                [
-                    'grant_type' => 'authorization_code',
-                    'client_id' => config('zohoconnector.client_id'),
-                    'client_secret' => config('zohoconnector.client_secret'),
-                    'redirect_uri' => env("APP_URL") . "/zoho/request-code-response",
-                    'code' => $code,
-                    'prompt' => 'consent',
-                ]
-            );
-
-            $this->ZohoResponseCheck($response);
-
-            $this->registerToken($response->json());
-
-            return $this->isReady();
-        } catch (Exception $e) {
-            //? Log any exceptions that occur during token request
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    public function get(string $report, string|array $criteria = "") : array {
+    /**
+     * 🌐🔐 get()
+     *
+     *  Return at the maximum 1000 records from the given report and the given criteria.
+     *  If the report can return more than 1000 records and a $cursor is given, it will be filled.
+     *  The return value is an array from JSON.
+     *
+     * 🚀 Basic get from a report
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report     required    name of the report where to get informations
+     * @param string|array  $criteria   optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     * @param string        $cursor     optional    /!\by reference. Will be filed with a cursor if exists (more than 1000 results)
+     *
+     * @return array datas as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function get(string $report, string|array $criteria = "", string &$cursor = "") : array|string {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "")) {
                 //? Log error if request fails
-                throw new Exception("Missing parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
-            $criteria_as_string = (gettype($criteria) == "array" ? $this->criteriaFormater($criteria) : $criteria);
+            //URL
             $full_url = $this->api_base_url . "/report/" . $report;
 
+            //PARAMETERS
             $parmeters = [];
+            $parmeters['max_records'] = 1000;
             $parmeters['field_config'] = "all";
+            $criteria_as_string = (gettype($criteria) == "array" ? $this->criteriaFormater($criteria) : $criteria);
             if($criteria_as_string != null && $criteria_as_string != "") {
                 $parmeters['criteria'] = $criteria_as_string;
             }
 
-            $response = Http::withHeaders($this->getHeaders())->get(
+            //HEADERS
+            $headers = $this->getHeaders();
+            if($cursor != "") {$headers["record_cursor"] = $cursor;}
+
+            //REQUEST
+            $response = Http::withHeaders($headers)->get(
                 $full_url,
                 $parmeters
             );
-        
-            $this->ZohoResponseCheck($response,"ZohoCreator.report.READ");
 
-            return $response->json();
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.READ");
+            
+            // set the cursor if exist or reset
+            $cursor = (array_key_exists("record_cursor",$response->headers())? $response->headers()["record_cursor"][0] : "");
+
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * 🌐🔐 getAll()
+     *
+     *  Return the maximum of records with the get function used recursively. 
+     *  The return value is an array from JSON.
+     *  /!\ The function lanch multiple get so it can be too long for the server timeout
+     *
+     * 🚀 Basic get from a report
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report     required    name of the report where to get informations
+     * @param string|array  $criteria   optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     *
+     * @return array datas as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getAll(string $report, string|array $criteria = "") : array {
+        try {
+            $this->ZohoServiceCheck();
+           
+            $cursor = "";
+
+            $found_datas = $this->get($report, $criteria, $cursor);
+            while($cursor != "") {
+                $found_datas = array_merge($found_datas,$this->get($report, $criteria, $cursor));
+            }
+
+            return $found_datas;
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return [];
         }
     }
 
+    /**
+     * 🌐🔐 getByID()
+     *
+     *  Return the object by id from a report
+     *
+     * 🚀 Basic get by id from a report
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report      required    name of the report where to get informations
+     * @param string        $object_id   required    id of the desired object
+     *
+     * @return array datas as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
     public function getByID(string $report, string $object_id) : array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "")) {
                 //? Log error if request fails
-                throw new Exception("Missing parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
             $full_url = $this->api_base_url . "/report/" . $report . "/" . $object_id;
@@ -214,13 +161,28 @@ class ZohoCreatorService {
         }
     }
 
+    /**
+     * 🌐🔐 createBulk()
+     *
+     *  Create a bulk read request
+     *
+     * 🚀 Launch a bulk read request and return the id of the generated bulk
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report      required    name of the report where to get informations
+     * @param string        $criteria    optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     *
+     * @return string id of the created bulk as string
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
     public function createBulk(string $report, string|array $criteria = "") : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "")) {
                 //? Log error if request fails
-                throw new Exception("Missing parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
             $full_url = $this->bulk_base_url  . $report . "/read";
@@ -248,13 +210,28 @@ class ZohoCreatorService {
         }
     }
 
+    /**
+     * 🌐🔐 readBulk()
+     *
+     *  Return the informations datas from a created bulk 
+     *
+     * 🚀 Read a bulk infos
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report      required    name of the report where to get informations
+     * @param string        $id          required    ID of the created bulk
+     *
+     * @return array bulk infos datas
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
     public function readBulk(string $report, string $id) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "") || ($id === null || $id === "")) {
                 //? Log error if request fails
-                throw new Exception("Missing parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
             $full_url = $this->bulk_base_url  . $report . "/read/" . $id;
@@ -272,6 +249,21 @@ class ZohoCreatorService {
         }
     }
 
+    /**
+     * 🌐🔐 bulkIsReady()
+     *
+     *  Return if a bulk is ready to be download
+     *
+     * 🚀 Read a bulk infos and then return the ready status
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report      required    name of the report where to get informations
+     * @param string        $id          required    ID of the created bulk
+     *
+     * @return bool the bulk ready status
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
     public function bulkIsReady(string $report, string $id) : bool {
         try {
             $this->ZohoServiceCheck();
@@ -286,13 +278,30 @@ class ZohoCreatorService {
         }
     }
 
+    /**
+     * 🌐🔐 downloadBulk()
+     *
+     *  Create the zohoconnector.bulk_download_path if not exists
+     *  Download the bulk result as an .zip in the bulk_download_path
+     *  Return the ZIP location
+     *
+     * 🚀 Download the bulk result and return the location
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report      required    name of the report where to get informations
+     * @param string        $id          required    ID of the created bulk
+     *
+     * @return string the ZIP location
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
     public function downloadBulk(string $report, string $id) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "") || ($id === null || $id === "")) {
                 //? Log error if request fails
-                throw new Exception("Missing parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
             $full_url = $this->bulk_base_url  . $report . "/read/" . $id . "/result";
@@ -334,14 +343,7 @@ class ZohoCreatorService {
         }
     }
 
-    public function resetTokens() : void {
-        try {
-            ZohoConnectorToken::truncate();
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-        }
-    }
-
+    //TEST FUNCTION
     public function test() : string {
         $this->ZohoServiceCheck();
         return "blob";
