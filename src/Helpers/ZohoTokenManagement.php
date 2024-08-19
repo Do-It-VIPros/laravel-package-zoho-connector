@@ -3,7 +3,6 @@
 namespace Agencedoit\ZohoConnector\Helpers;
 
 use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
-use Agencedoit\ZohoConnector\Traits\ZohoServiceChecker;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

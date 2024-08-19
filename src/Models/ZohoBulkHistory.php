@@ -5,7 +5,7 @@ namespace Agencedoit\ZohoConnector\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ZohoConnectorToken extends Model
+class ZohoBulkHistory extends Model
 {
     use HasFactory;
 
@@ -15,14 +15,15 @@ class ZohoConnectorToken extends Model
     {
         parent::__construct($attributes);
         
-        $this->table = config('zohoconnector.tokens_table_name');
+        $this->table = config('zohoconnector.bulks_table_name');
     }
 
     protected $fillable=[
-        'token',
-        'refresh_token',
-        'token_created_at',
-        'token_peremption_at',
-        'token_duration'
+        'bulk_id',
+        'report',
+        'criterias',
+        'step',
+        'call_back_url',
+        'last_launch'
     ];
 }

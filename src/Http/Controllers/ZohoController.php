@@ -133,10 +133,9 @@ class ZohoController extends Controller
     public static function test_connexion() {
         return View::make('zohoconnector::test_connexion');
     }
-
-    public function test() {
-        //return ZohoCreatorApi::createBulk("API_Marques");
-        $bulk_id = "61757000036827074";
-        return ZohoCreatorApi::downloadBulk("API_Marques",$bulk_id);
+    
+    //TEST FUNCTION
+    public function test() : string {
+        return ZohoCreatorApi::getWithBulk("API_Produits","/test");
     }
 }

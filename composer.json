@@ -1,6 +1,6 @@
 {
     "name": "agencedoit/zohoconnector",
-    "version": "0.8.1",
+    "version": "1.0.1",
     "description": "Zoho Creator API connector for Laravel",
     "autoload": {
         "psr-4": {
@@ -20,7 +20,10 @@
         "laravel": {
             "providers": [
                 "Agencedoit\\ZohoConnector\\ZohoConnectorServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "ZohoCreatorApi": "Agencedoit\\ZohoConnector\\Facades\\ZohoCreatorFacade"
+            }
         }
     },
     "require": {},
