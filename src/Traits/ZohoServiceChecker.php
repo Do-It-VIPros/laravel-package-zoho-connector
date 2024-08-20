@@ -16,7 +16,7 @@ trait ZohoServiceChecker
         if (!ZohoCreatorApi::isReady()) {
             Log::error('ZohoCreatorService is not ready. Please init it.');
             Log::error('See ' . env("APP_URL") . '/zoho/test for more informations.');
-            abort(503, 'ZohoCreatorService is not ready. Please init it.');
+            throw new Exception('ZohoCreatorService is not ready. Please init it.');
         }
     }
 

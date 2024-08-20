@@ -19,9 +19,9 @@ class ZohoConnectorServiceProvider extends ServiceProvider
         $this->app->singleton(ZohoCreatorService::class, function ($app) {
             return new ZohoCreatorService();
         });
-        AliasLoader::getInstance([
+        /*AliasLoader::getInstance([
             'ZohoCreatorApi' => ZohoCreatorFacade::class,
-        ]);
+        ]);*/
         //$this->app->alias(ZohoCreatorService::class, 'ZohoCreatorApi');
     }
 

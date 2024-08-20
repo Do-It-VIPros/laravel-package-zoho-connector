@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('zohoconnector.tokens_table_name'), function (Blueprint $table) {
+        Schema::create(config('zohoconnector.bulks_table_name'), function (Blueprint $table) {
             $table->id();
-            $table->string('token');
-            $table->string('refresh_token');
-            $table->timestamp('token_created_at');
-            $table->timestamp('token_peremption_at');
-            $table->integer('token_duration');
+            $table->string('bulk_id');
+            $table->string('report');
+            $table->string('criterias');
+            $table->string('step');
+            $table->string('call_back_url');
+            $table->timestamp('last_launch');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('zohoconnector.tokens_table_name'));
+        Schema::dropIfExists(config('zohoconnector.bulks_table_name'));
     }
 };

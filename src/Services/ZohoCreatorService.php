@@ -2,9 +2,10 @@
 
 namespace Agencedoit\ZohoConnector\Services;
 
-use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
 use Agencedoit\ZohoConnector\Traits\ZohoServiceChecker;
 use Agencedoit\ZohoConnector\Helpers\ZohoTokenManagement;
+use Agencedoit\ZohoConnector\Models\ZohoBulkHistory;
+use Agencedoit\ZohoConnector\Jobs\ZohoCreatorBulkProcess;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -325,6 +326,149 @@ class ZohoCreatorService extends ZohoTokenManagement {
         }
     }
 
+    /**
+     * 🌐🔐 createBulkAuto()
+     *
+     *  Create a bulk read request but with an automatic service
+     *  This one will render the result on a call back request
+     *
+     * 🚀 Launch a bulk read request and return the id of the generated bulk
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report         required    name of the report where to get informations
+     * @param string        $call_back_url  required    url to send the result of the operation
+     * @param string        $criteria       optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     *
+     * @return string   id of the created bulk as string
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function createBulkAuto(string $report, string $call_back_url, string|array $criteria = "") : string|array {
+        try {
+            $bulk_id = $this->createBulk($report, $criteria);
+            $bulk_history = ZohoBulkHistory::create([
+                'bulk_id' => $bulk_id,
+                'report' => $report,
+                'criterias' => $criteria,
+                'step' => "created",
+                'call_back_url' => $call_back_url,
+                'last_launch' => now()
+            ]);
+            return $bulk_history->id;
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "";
+        }
+    }
+
+    /**
+     * 🌐🔐 readBulkAuto()
+     *
+     *  Read the bulk info with a bulk_history_id but with an automatic service
+     *
+     * 🚀 Launch a bulk read request and return the id of the generated bulk
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string    $bulk_history_id     required    ID of the bulk_history to read
+     *
+     * @return array   the result of readBulk
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function readBulkAuto(int $bulk_history_id) : string|array {
+        try {
+            $bulk_history = ZohoBulkHistory::find($bulk_history_id);
+            $bulk_infos = $this->readBulk($bulk_history->report, $bulk_history->bulk_id);
+            return $bulk_infos;
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "";
+        }
+    }
+
+    /**
+     * 🌐🔐 bulkIsReadyAuto()
+     *
+     *  Return if a bulk is ready to be download but with a bulk_history_id
+     *
+     * 🚀 Read a bulk infos and then return the ready status
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string    $bulk_history_id     required    ID of the bulk_history to read
+     *
+     * @return bool the bulk ready status
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function bulkIsReadyAuto(int $bulk_history_id) : bool {
+        try {
+            $bulk_infos = $this->readBulkAuto($bulk_history_id);
+            return ($bulk_infos != "" && $bulk_infos["details"]["status"] == "Completed");
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            abort(503, 'An error occured');
+            return false;
+        }
+    }
+
+    /**
+     * 🌐🔐 downloadBulkAuto()
+     *
+     *  Launch the downloadBulk function from a bulk_hitory_infos
+     *
+     * 🚀 Download the bulk result and return the location
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string    $bulk_history_id     required    ID of the bulk_history to download
+     *
+     * @return string the ZIP location
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function downloadBulkAuto(int $bulk_history_id) : string|array {
+        try {
+            $bulk_history = ZohoBulkHistory::find($bulk_history_id);
+            $bulk_download_path = $this->downloadBulk($bulk_history->report, $bulk_history->bulk_id);
+            return $bulk_download_path;
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            abort(503, 'An error occured');
+        }
+    }
+
+    /**
+     * 🌐🔐 getWithBulk()
+     *
+     *  Create a bulk read request but with an automatic service
+     *  This one will render the result on a call back request
+     *
+     * 🚀 Launch a bulk read request and return the id of the generated bulk
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report         required    name of the report where to get informations
+     * @param string        $call_back_url  required    url to send the result of the operation
+     * @param string        $criteria       optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     *
+     * @return string   id of the created bulk as string
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getWithBulk(string $report, string $call_back_url, string|array $criteria = "") : string|array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($report === null || $report === "" || $call_back_url === null || $call_back_url === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required report parameter", 503);
+            }
+            ZohoCreatorBulkProcess::dispatch($report, $call_back_url, $criteria);
+            return "OK";
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
     //WIP See if it's realy useful
     private function criteriaFormater(array $criteria) : string {
         try {
@@ -345,7 +489,6 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
     //TEST FUNCTION
     public function test() : string {
-        $this->ZohoServiceCheck();
         return "blob";
     }
 }

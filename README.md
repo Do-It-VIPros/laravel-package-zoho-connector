@@ -51,7 +51,7 @@ Comming soon.
 |ZOHO_APP_NAME|Yes| Your Zoho App identifier | - | Default value : zylker-store|
 |ZOHO_BULK_DOWNLOAD_PATH|No| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
 |ZOHO_TOKENS_TABLE|No| tokens table name | - | Default value : zoho_connector_tokens |
-|ZOHO_BULK_TABLE|No| bulk process table name | - | Default value : zoho_bulk_processes |
+|ZOHO_BULKS_TABLE|No| bulk process table name | - | Default value : zoho_connector_bulk_history |
 
 ### Initalize
 
