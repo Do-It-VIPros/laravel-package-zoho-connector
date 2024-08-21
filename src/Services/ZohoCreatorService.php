@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 
 use \Exception;
+use ZipArchive;
 
 class ZohoCreatorService extends ZohoTokenManagement {
 
@@ -343,7 +344,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function createBulkAuto(string $report, string $call_back_url, string|array $criteria = "") : string|array {
+    public function createBulkAuto(string $report, string $call_back_url, string|array $criteria = "") : string|int {
         try {
             $bulk_id = $this->createBulk($report, $criteria);
             $bulk_history = ZohoBulkHistory::create([
@@ -463,6 +464,75 @@ class ZohoCreatorService extends ZohoTokenManagement {
             }
             ZohoCreatorBulkProcess::dispatch($report, $call_back_url, $criteria);
             return "OK";
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
+     * 🌐🔐 extractCsvFromZip()
+     *
+     *  Extract with ZipArchive from PHP the CSV of a ZIP bulk request
+     *
+     * 🚀 Extract with ZipArchive from PHP the CSV of a ZIP bulk request
+     * 📝 Context: ZohoCreatorService don't need to be ready
+     * 
+     * @param string        $zip_location         required    Location of the ZIP from Bulk to extract
+     * @param string        $extracted_location   required    Destination of the extracted CSV
+     * @param string        $report               required    report from the bulk request
+     * @param string        $bulk_id              required    ID of the bulk request
+     *
+     * @return string       path to the extracted CSV
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function extractCsvFromZip(string $zip_location, string $extracted_location, string $report, string $bulk_id) : string|array {
+        try {
+            
+            $zip = new ZipArchive;
+            $zip->open($zip_location);
+            $zip->extractTo($extracted_location);
+            $zip->close();
+            return $extracted_location . "/" . $report . "_" . $bulk_id . ".csv";;
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
+     * 🌐🔐 transformCsvToJson()
+     *
+     *  Extract and transform the data from a CSV file to a JSON file at the same location
+     *
+     * 🚀 Transform a CSV to a JSON
+     * 📝 Context: ZohoCreatorService don't need to be ready
+     * 
+     * @param string        $csv_location         required    Location of the CSV to transform
+     *
+     * @return string       path to the resulted JSON
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function transformCsvToJson(string $csv_location) : string|array {
+        try {
+            $json_location = substr_replace($csv_location, '', -4) . ".json";
+            $csv_reader = fopen($csv_location, 'r');
+            $csv_headers = fgetcsv($csv_reader); // Get column headers
+            foreach($csv_headers as &$csv_header) {
+                if(str_contains($csv_header,".")){
+                    $csv_header = str_replace(".","->",$csv_header);
+                }
+            }
+            $bulk_results_as_array = array();
+            while (($row = fgetcsv($csv_reader))) {
+                $bulk_results_as_array[] = array_combine($csv_headers, $row);
+            }
+            fclose($csv_reader);
+            $bulk_results_as_json = json_encode($bulk_results_as_array, JSON_PRETTY_PRINT);
+            file_put_contents($json_location, $bulk_results_as_json);
+            return $json_location;
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return "KO";
