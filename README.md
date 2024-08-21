@@ -24,6 +24,11 @@ To use the service and interact with the Zoho API you need to get a client_id an
     - Authorized Redirect URIs : <APP_URL>/zoho/request-code-response <= IMPORTANT
 - You'll get the required client_id and client_secret
 
+- PHP has to have the [zip extension](https://www.php.net/manual/en/zip.installation.php) installed. For Linux system, just type with the right php version :
+``` bash
+  sudo apt-get install php8.2-zip
+```
+
 ### Basics
 
 #### Creator
@@ -120,26 +125,37 @@ Return the found record as an array.
 
 field_config is set to "all".
 
-### Create bulk
+### Bulk operations
+#### Automated gestion
+The whole bulk process is now entierly supervised with Laravel Jobs. Just use the function : 
+``` php
+  ZohoCreatorApi::getWithBulk(<report_name>, <call_back_url>, <criterias>="")
+```
+This launch a laravel JOB and send to the callback_url by the parameter json_location, the location of the downloaded,extracted,transformed report datas in JSON.
+This function require the [zip extension](https://www.php.net/manual/en/zip.installation.php) of PHP and you need to run the jobs of Laravel with : 
+``` bash
+php artisan queue:work
+```
+#### Create bulk
 
 ``` php
-ZohoCreatorApi::createBulk(<report_name>,<criterias>="");
+  ZohoCreatorApi::createBulk(<report_name>,<criterias>="");
 ```
 Create the bulk request.
 
 [See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
 
-### Read Bulk infos
+#### Read Bulk infos
 
 ``` php
-ZohoCreatorApi::readBulk(<report_name>,<bulk_id>="");
+  ZohoCreatorApi::readBulk(<report_name>,<bulk_id>="");
 ```
 Return the bulk request infos as an array.
 
-### Download bulk
+#### Download bulk
 
 ``` php
-ZohoCreatorApi::downloadBulk(<report_name>,<bulk_id>="");
+  ZohoCreatorApi::downloadBulk(<report_name>,<bulk_id>="");
 ```
 Download the bulk request result in the ZOHO_BULK_DOWNLOAD_PATH.
 
