@@ -14,7 +14,7 @@ use \Exception;
 
 class ZohoTokenManagement {
 
-    protected string $api_base_url;
+    protected string $data_base_url;
     protected string $bulk_base_url;
 
     /**

@@ -12,9 +12,7 @@ return [
 
     'base_account_url' => ("https://accounts.zoho." . env('ZOHO_ACCOUNT_DOMAIN', 'eu')),
 
-    'api_base_url' => ("https://creator.zoho." . env('ZOHO_ACCOUNT_DOMAIN', 'eu')),
-
-    'bulk_base_url' => ("https://www.zohoapis." . env('ZOHO_ACCOUNT_DOMAIN', 'eu')),
+    'api_base_url' => ("https://www.zohoapis." . env('ZOHO_ACCOUNT_DOMAIN', 'eu')),
 
     'client_id' => env('ZOHO_CLIENT_ID', "1000.8cb99dxxxxxxxxxxxxx9be93"),
 

@@ -20,8 +20,8 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
     public function __construct()
     {
-        $this->api_base_url = config('zohoconnector.api_base_url') . "/api/v2.1/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name');
-        $this->bulk_base_url = config('zohoconnector.bulk_base_url') . "/creator/v2.1/bulk/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/report/";
+        $this->data_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/data/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name');
+        $this->bulk_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/bulk/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/report/";
     }
 
     /**
@@ -52,7 +52,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             }
 
             //URL
-            $full_url = $this->api_base_url . "/report/" . $report;
+            $full_url = $this->data_base_url . "/report/" . $report;
 
             //PARAMETERS
             $parmeters = [];
@@ -145,7 +145,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 throw new Exception("Missing required report parameter", 503);
             }
 
-            $full_url = $this->api_base_url . "/report/" . $report . "/" . $object_id;
+            $full_url = $this->data_base_url . "/report/" . $report . "/" . $object_id;
 
             $response = Http::withHeaders($this->getHeaders())->get(
                 $full_url,
@@ -469,6 +469,66 @@ class ZohoCreatorService extends ZohoTokenManagement {
             return "KO";
         }
     }
+
+    /**
+     * 🌐🔐 create()
+     *
+     *  Add a record into the given form
+     *
+     * 🚀 Add a record into the given form
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $form                required    name of the form to fill
+     * @param array         $attributes          required    fields as array
+     * @param array         $additional_fields   optional    fields to return with the ID
+     *
+     * @return array   datas added. By default the ID only, $additional_field can be returned too
+     *                  In cas of multiple add, return each data return as array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function create(string $form, array $attributes, array $additional_fields = []) : array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($form === null || $form === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required form parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->data_base_url . "/form/" . $form;
+
+            $json_body = ["data" => $attributes];
+            $json_body["result"] = ["fields" => $additional_fields];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
+                $full_url,
+                $json_body
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.form.CREATE");
+            
+            //RETURN
+            //return $response->json();
+            //return multiple
+            if(isset($response->json()["result"])) {
+                $return_response = [];
+                foreach($response->json()["result"] as $result) {
+                    $return_response[] = $result["data"];
+                }
+                return $return_response;
+            }
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    ///////// TOOLS SECTION ////////
 
     /**
      * 🌐🔐 extractCsvFromZip()
