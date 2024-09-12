@@ -462,7 +462,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 //? Log error if request fails
                 throw new Exception("Missing required report parameter", 503);
             }
-            ZohoCreatorBulkProcess::dispatch($report, $call_back_url, $criteria);
+            ZohoCreatorBulkProcess::dispatch($report, $call_back_url, $criteria)->onQueue(config('zohoconnector.bulk_queue'));
             return "OK";
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
