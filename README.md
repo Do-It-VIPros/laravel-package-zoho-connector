@@ -21,7 +21,7 @@ To use the service and interact with the Zoho API you need to get a client_id an
 - Fill the informations :
     - Client Name : Your App Name
     - Homepage URL : You App URL
-    - Authorized Redirect URIs : <APP_URL>/zoho/request-code-response <= IMPORTANT
+    - Authorized Redirect URIs : --APP_URL--/zoho/request-code-response <= IMPORTANT
 - You'll get the required client_id and client_secret
 
 - PHP has to have the [zip extension](https://www.php.net/manual/en/zip.installation.php) installed. For Linux system, just type with the right php version :
@@ -63,7 +63,7 @@ Comming soon.
 - Be sure to have the APP_URL env var set.
 - Get a client_id and a client_secret from ZOHO => [Requirements](#Requirements).
 - Fill the Environnements variables as described in [Environnements variables](#Environnements-variables).
-- On DEV environnement, you can go on <APP_URL>/zoho/test to check if all your environnement is ready. Then click on "Request code page" link to activate the 
+- On DEV environnement, you can go on --APP_URL--/zoho/test to check if all your environnement is ready. Then click on "Request code page" link to activate the 
 on DEV environnement).
 - If the service is ready. You can now [use the service](#usage).
 

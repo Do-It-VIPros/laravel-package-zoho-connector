@@ -12,7 +12,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use \ZipArchive;
 
 class ZohoCreatorBulkProcess implements ShouldQueue
 {
@@ -55,10 +54,14 @@ class ZohoCreatorBulkProcess implements ShouldQueue
             ///////EXTRACT OF THE ZIP
             $extracted_csv = ZohoCreatorApi::extractCsvFromZip($downloaded_zip_path, $extracted_zip_path, $bulk_history->report,$bulk_history->bulk_id);
             $bulk_history->step = "extracted";
+            //suppression de l'archive
+            unlink($downloaded_zip_path);
             $bulk_history->save();
             ///////TRANSFORM TO JSON
             $json_location = ZohoCreatorApi::transformCsvToJson($extracted_csv);
             $bulk_history->step = "transformed";
+            //suppression du csv
+            unlink($extracted_csv);
             $bulk_history->save();
             ///////CALLBACK
             Http::get($bulk_history->call_back_url, [
