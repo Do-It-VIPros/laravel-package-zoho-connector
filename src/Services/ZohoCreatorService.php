@@ -164,6 +164,126 @@ class ZohoCreatorService extends ZohoTokenManagement {
     }
 
     /**
+     * 🌐🔐 create()
+     *
+     *  Add a record into the given form
+     *
+     * 🚀 Add a record into the given form
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $form                required    name of the form to fill
+     * @param array         $attributes          required    fields as array
+     * @param array         $additional_fields   optional    fields to return with the ID
+     *
+     * @return array   datas added. By default the ID only, $additional_field can be returned too
+     *                  In cas of multiple add, return each data return as array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function create(string $form, array $attributes, array $additional_fields = []) : array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($form === null || $form === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required form parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->data_base_url . "/form/" . $form;
+
+            $json_body = ["data" => $attributes];
+            $json_body["result"] = ["fields" => $additional_fields];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
+                $full_url,
+                $json_body
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.form.CREATE");
+            
+            //RETURN
+            //return $response->json();
+            //return multiple
+            if(isset($response->json()["result"])) {
+                $return_response = [];
+                foreach($response->json()["result"] as $result) {
+                    $return_response[] = $result["data"];
+                }
+                return $return_response;
+            }
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
+     * 🌐🔐 update()
+     *
+     *  Update a record into the given report
+     *
+     * 🚀 Update a record into the given report
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report                required    name of the report to update
+     * @param int           $id                    required    id of the entity to update
+     * @param array         $attributes            required    fields as array
+     * @param array         $additional_fields     optional    fields to return with the ID
+     *
+     * @return array   datas added. By default the ID only, $additional_field can be returned too
+     *                  In cas of multiple add, return each data return as array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function update(string $report, int $id, array $attributes, array $additional_fields = []) : array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($report === null || $report === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required report parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
+
+            $json_body = ["data" => $attributes];
+            $json_body["result"] = ["fields" => $additional_fields];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->patch(
+                $full_url,
+                $json_body
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
+            
+            //RETURN
+            //return $response->json();
+            //return multiple
+            if(isset($response->json()["result"])) {
+                $return_response = [];
+                foreach($response->json()["result"] as $result) {
+                    $return_response[] = $result["data"];
+                }
+                return $return_response;
+            }
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    ///////// BULK FUNCTIONS //////////
+
+    
+    /**
      * 🌐🔐 createBulk()
      *
      *  Create a bulk read request
@@ -470,122 +590,6 @@ class ZohoCreatorService extends ZohoTokenManagement {
         }
     }
 
-    /**
-     * 🌐🔐 create()
-     *
-     *  Add a record into the given form
-     *
-     * 🚀 Add a record into the given form
-     * 📝 Context: ZohoCreatorService need to be ready
-     * 
-     * @param string        $form                required    name of the form to fill
-     * @param array         $attributes          required    fields as array
-     * @param array         $additional_fields   optional    fields to return with the ID
-     *
-     * @return array   datas added. By default the ID only, $additional_field can be returned too
-     *                  In cas of multiple add, return each data return as array
-     *
-     * @throws \Exception If an error occurs during the process, it logs the error.
-     */
-    public function create(string $form, array $attributes, array $additional_fields = []) : array {
-        try {
-            $this->ZohoServiceCheck();
-            //required variables check
-            if (($form === null || $form === "")) {
-                //? Log error if request fails
-                throw new Exception("Missing required form parameter", 503);
-            }
-
-            //URL
-            $full_url = $this->data_base_url . "/form/" . $form;
-
-            $json_body = ["data" => $attributes];
-            $json_body["result"] = ["fields" => $additional_fields];
-
-            //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
-                $full_url,
-                $json_body
-            );
-
-            //CHECK RESPONSE
-            $this->ZohoResponseCheck($response,"ZohoCreator.form.CREATE");
-            
-            //RETURN
-            //return $response->json();
-            //return multiple
-            if(isset($response->json()["result"])) {
-                $return_response = [];
-                foreach($response->json()["result"] as $result) {
-                    $return_response[] = $result["data"];
-                }
-                return $return_response;
-            }
-            return $response->json()["data"];
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return "KO";
-        }
-    }
-
-    /**
-     * 🌐🔐 update()
-     *
-     *  Update a record into the given report
-     *
-     * 🚀 Update a record into the given report
-     * 📝 Context: ZohoCreatorService need to be ready
-     * 
-     * @param string        $report                required    name of the report to update
-     * @param int           $id                    required    id of the entity to update
-     * @param array         $attributes            required    fields as array
-     * @param array         $additional_fields     optional    fields to return with the ID
-     *
-     * @return array   datas added. By default the ID only, $additional_field can be returned too
-     *                  In cas of multiple add, return each data return as array
-     *
-     * @throws \Exception If an error occurs during the process, it logs the error.
-     */
-    public function update(string $report, int $id, array $attributes, array $additional_fields = []) : array {
-        try {
-            $this->ZohoServiceCheck();
-            //required variables check
-            if (($report === null || $report === "")) {
-                //? Log error if request fails
-                throw new Exception("Missing required report parameter", 503);
-            }
-
-            //URL
-            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
-
-            $json_body = ["data" => $attributes];
-            $json_body["result"] = ["fields" => $additional_fields];
-
-            //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->patch(
-                $full_url,
-                $json_body
-            );
-
-            //CHECK RESPONSE
-            $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
-            
-            //RETURN
-            //return $response->json();
-            //return multiple
-            if(isset($response->json()["result"])) {
-                $return_response = [];
-                foreach($response->json()["result"] as $result) {
-                    $return_response[] = $result["data"];
-                }
-                return $return_response;
-            }
-            return $response->json()["data"];
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return "KO";
-        }
-    }
 
     ///////// TOOLS SECTION ////////
 
