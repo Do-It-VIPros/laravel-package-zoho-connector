@@ -137,6 +137,7 @@ class ZohoController extends Controller
     //TEST FUNCTION
     public function test() {
         //return ZohoCreatorApi::get("Conf_addresse_report");
-        return ZohoCreatorApi::create("Form_confirmation_adress",["user" => 61757000032464355],["user"])["ID"];
+        //return ZohoCreatorApi::create("Form_confirmation_adress",["user" => 61757000032464355],["user"])["ID"];
+        return ZohoCreatorApi::update("Conf_addresse_report",61757000039794471,["code" => "456789"])["ID"];
     }
 }
