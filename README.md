@@ -74,10 +74,12 @@ Comming soon.
 |ZOHO_USER|Yes| Your Zoho user name | - | Default value : jason18|
 |ZOHO_APP_NAME|Yes| Your Zoho App identifier | - | Default value : zylker-store|
 |ZOHO_TOKENS_TABLE|No| tokens table name | - | Default value : zoho_connector_tokens |
+|ZOHO_CREATOR_ENVIRONMENT|No| Environnement to reach during the ZohoAPI calls (see [Zoho environnements](https://www.zoho.com/creator/help/deploy/environments/understand-environments.html))  | - | Default value : production |
 | ----------- | -- | -------- | ------ | ---- |
 |ZOHO_BULK_DOWNLOAD_PATH|No| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
 |ZOHO_BULKS_TABLE|No| bulk process table name | - | Default value : zoho_connector_bulk_history |
 |ZOHO_BULK_QUEUE|No| Queue name for the bulk process  | - | Default value : default |
+
 
 ### Initalize
 
@@ -157,6 +159,24 @@ Add a record in the form with the given attributes
 
 ``` php
 ZohoCreatorApi::update(<report_name>,<id>,<attributes>,<additional_fields>=[]);
+```
+Update a record with the given attributes
+
+### Custom API calls
+
+#### GET
+
+``` php
+ZohoCreatorApi::customFunctionGet(<url>,<public_key>="");
+```
+Call a custom zoho creator API function with GET.
+If a public key is given, it will be added to the request.
+If there is no public key, the auth token will be used.
+
+#### POST
+
+``` php
+ZohoCreatorApi::customFunctionPost(<url>,<datas>=[],<public_key>="");
 ```
 Update a record with the given attributes
 

@@ -3,7 +3,7 @@
 namespace Agencedoit\ZohoConnector\Helpers;
 
 use Agencedoit\ZohoConnector\Models\ZohoConnectorToken;
-
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -16,6 +16,7 @@ class ZohoTokenManagement {
 
     protected string $data_base_url;
     protected string $bulk_base_url;
+    protected string $custom_base_url;
 
     /**
      * 🌐🔐 isReady()
@@ -54,8 +55,8 @@ class ZohoTokenManagement {
     private function getToken() : string|null {
         try{
             //get a valid token
-            $token_line = ZohoConnectorToken::where('token_created_at', '<=', new DateTime('NOW'))
-                                            ->where('token_peremption_at', '>', new DateTime('NOW'))
+            $token_line = ZohoConnectorToken::where('token_created_at', '<=', Carbon::now())
+                                            ->where('token_peremption_at', '>', Carbon::now())
                                             ->first();
             if($token_line != null) {
                 //Token already generated and available
@@ -206,7 +207,10 @@ class ZohoTokenManagement {
      */
     protected function getHeaders() : array {
         try {
-            return ['Authorization' => 'Zoho-oauthtoken ' . $this->getToken()];
+            return [
+                'Authorization' => 'Zoho-oauthtoken ' . $this->getToken(),
+                'environment' => config('zohoconnector.environment')
+            ];
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return [];

@@ -22,6 +22,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
     {
         $this->data_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/data/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name');
         $this->bulk_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/bulk/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/report/";
+        $this->custom_base_url = config('zohoconnector.api_base_url') . "/creator/custom/" . config('zohoconnector.user') . "/";
     }
 
     /**
@@ -217,6 +218,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             return $response->json()["data"];
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            //return ;
             return "KO";
         }
     }
@@ -274,6 +276,105 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 return $return_response;
             }
             return $response->json()["data"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
+     * 🌐🔐 customFunctionGet()
+     *
+     * call a zoho creator custom with GET method
+     * The endpoint is protected
+     *  - or by auth (default process and need a token with Zohocreator.customapi.EXECUTE authorisation)
+     *  - or by publickey 
+     *
+     * 🚀 execute a zoho creator custom with GET method 
+     * 📝 Context: ZohoCreatorService need to be ready (only if endpoint is auth protected)
+     * 
+     * @param string        $url                   required    refer to the link name in the basic details part when the custom endpoint is created
+     * @param string        $public_key            optional    the public key if the endpoint is not protected by a auth
+     *
+     * @return array   the response of the custom function
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function customFunctionGet(string $url, string $public_key = "") {
+        try {
+            if($public_key == "") {$this->ZohoServiceCheck();}
+
+            //required variables check
+            if (($url === null || $url === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required url parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->custom_base_url . $url;
+
+            //PARAMETERS
+            $parmeters = array();
+            $headers = array();
+            ($public_key != "")? $parmeters["publickey"] = $public_key : $headers = $this->getHeaders();
+
+            //REQUEST
+            $response = Http::withHeaders($headers)->get(
+                $full_url,
+                $parmeters
+            );
+
+            //CHECK RESPONSE
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $response);
+            $this->ZohoResponseCheck($response, "Zohocreator.customapi.EXECUTE");
+            return $response;
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
+     * 🌐🔐 customFunctionPost()
+     *
+     * call a zoho creator custom with POST method
+     * The endpoint is protected
+     *  - or by auth (default process and need a token with Zohocreator.customapi.EXECUTE authorisation)
+     *  - or by publickey 
+     *
+     * 🚀 execute a zoho creator custom with POST method 
+     * 📝 Context: ZohoCreatorService need to be ready (only if endpoint is auth protected)
+     * 
+     * @param string        $url                   required    refer to the link name in the basic details part when the custom endpoint is created
+     * @param array         $body                  optional    the json body as array
+     * @param string        $public_key            optional    the public key if the endpoint is not protected by a auth
+     *
+     * @return array   the response of the custom function
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function customFunctionPost(string $url, array $body = [], string $public_key = "") {
+        try {
+            $this->ZohoServiceCheck();
+
+            //required variables check
+            if (($url === null || $url === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required url parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->custom_base_url . $url . (($public_key != "") ? ("?publickey=" . $public_key) : "" );
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
+                $full_url,
+                $body
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response, "Zohocreator.customapi.EXECUTE");
+            return $response;
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return "KO";

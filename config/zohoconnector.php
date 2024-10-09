@@ -32,4 +32,5 @@ return [
 
     'bulk_queue' => env('ZOHO_BULK_QUEUE', 'default'),
 
+    'environment' => env('ZOHO_CREATOR_ENVIRONMENT', 'production'),
 ];
