@@ -294,13 +294,14 @@ class ZohoCreatorService extends ZohoTokenManagement {
      * 📝 Context: ZohoCreatorService need to be ready (only if endpoint is auth protected)
      * 
      * @param string        $url                   required    refer to the link name in the basic details part when the custom endpoint is created
+     * @param string        $parameters            optional    Additionnals URL parameters
      * @param string        $public_key            optional    the public key if the endpoint is not protected by a auth
      *
      * @return array   the response of the custom function
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function customFunctionGet(string $url, string $public_key = "") {
+    public function customFunctionGet(string $url, array $parameters = [], string $public_key = "") {
         try {
             if($public_key == "") {$this->ZohoServiceCheck();}
 
@@ -314,14 +315,13 @@ class ZohoCreatorService extends ZohoTokenManagement {
             $full_url = $this->custom_base_url . $url;
 
             //PARAMETERS
-            $parmeters = array();
             $headers = array();
-            ($public_key != "")? $parmeters["publickey"] = $public_key : $headers = $this->getHeaders();
+            ($public_key != "")? $parameters["publickey"] = $public_key : $headers = $this->getHeaders();
 
             //REQUEST
             $response = Http::withHeaders($headers)->get(
                 $full_url,
-                $parmeters
+                $parameters
             );
 
             //CHECK RESPONSE

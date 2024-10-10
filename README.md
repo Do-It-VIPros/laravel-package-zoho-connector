@@ -167,7 +167,7 @@ Update a record with the given attributes
 #### GET
 
 ``` php
-ZohoCreatorApi::customFunctionGet(<url>,<public_key>="");
+ZohoCreatorApi::customFunctionGet(<url>,<parameters>=[],<public_key>="");
 ```
 Call a custom zoho creator API function with GET.
 If a public key is given, it will be added to the request.
@@ -178,7 +178,10 @@ If there is no public key, the auth token will be used.
 ``` php
 ZohoCreatorApi::customFunctionPost(<url>,<datas>=[],<public_key>="");
 ```
-Update a record with the given attributes
+Call a custom zoho creator API function with POST.
+If a public key is given, it will be added to the request.
+If there is no public key, the auth token will be used.
+datas is the body in JSON format.
 
 ### Bulk operations
 
