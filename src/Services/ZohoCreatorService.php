@@ -196,6 +196,12 @@ class ZohoCreatorService extends ZohoTokenManagement {
             $json_body = ["data" => $attributes];
             $json_body["result"] = ["fields" => $additional_fields];
 
+            /*$log = [
+                'full_url' => $full_url,
+                'json_body' => $json_body,
+                'headers' => $this->getHeaders(),
+            ];
+            return $log;*/
             //REQUEST
             $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
                 $full_url,
@@ -218,8 +224,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             return $response->json()["data"];
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            //return ;
-            return "KO";
+            return array();
         }
     }
 
