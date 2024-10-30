@@ -34,6 +34,11 @@ trait ZohoServiceChecker
                     throw new Exception(implode ($response->json()));
                 }
             }
+            else {
+                if($response->json()["code"] != 3000){
+                    throw new Exception(json_encode($response->json()));
+                }
+            }
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             throw new Exception($e->getMessage());
