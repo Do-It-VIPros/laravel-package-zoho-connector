@@ -288,6 +288,57 @@ class ZohoCreatorService extends ZohoTokenManagement {
     }
 
     /**
+     * 🌐🔐 upload()
+     *
+     *  upload a file into a record into the given report
+     *
+     * 🚀 upload a file into a record into the given report
+     * 📝 Context: ZohoCreatorService need to be ready
+     * 
+     * @param string        $report                required    name of the report where to upload
+     * @param int           $id                    required    id of the entity where to upload
+     * @param string        $field                 required    name of the field where to upload
+     * @param string        $file                  required    url/path of the file to upload
+     *
+     * @return string       filename of the uploaded file
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function upload(string $report, int $id, string $field, string $file) : string {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($report === null || $report === "")
+                || ($id === null || $id === "")
+                || ($field === null || $field === "")
+                || ($file === null || $file === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required parameter", 503);
+            }
+
+            //URL
+            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
+
+            $json_body = ["file" => $file];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
+                $full_url,
+                $json_body
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.CREATE");
+            
+            //RETURN
+            return $response->json()["filepath"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return "KO";
+        }
+    }
+
+    /**
      * 🌐🔐 customFunctionGet()
      *
      * call a zoho creator custom with GET method

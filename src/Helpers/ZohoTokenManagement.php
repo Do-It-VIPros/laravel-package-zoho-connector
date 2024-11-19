@@ -14,9 +14,10 @@ use \Exception;
 
 class ZohoTokenManagement {
 
-    protected string $data_base_url;
-    protected string $bulk_base_url;
-    protected string $custom_base_url;
+    protected string $data_base_url; // => https://<base_url>/creator/v2.1/data/<account_owner_name>/<app_link_name>/
+    protected string $bulk_base_url; // => https://<base_url>/creator/v2.1/bulk/<account_owner_name>/<app_link_name>/report
+    protected string $custom_base_url; // => https://<base_url>/creator/custom/<account_owner_name>/;
+    
 
     /**
      * 🌐🔐 isReady()

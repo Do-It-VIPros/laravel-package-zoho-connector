@@ -21,6 +21,7 @@
     - [Get by ID](#Get-by-ID)
     - [Create](#Create)
     - [Update](#Update)
+    - [Upload](#Upload)
     - [Bulk operations](#Bulk-operations)
       - [Automated gestion](#Automated-gestion)
       - [Create bulk](#Create-bulk)
@@ -161,6 +162,13 @@ Add a record in the form with the given attributes
 ZohoCreatorApi::update(<report_name>,<id>,<attributes>,<additional_fields>=[]);
 ```
 Update a record with the given attributes
+
+### Upload
+
+``` php
+ZohoCreatorApi::upload(<report_name>,<id>,<field>,<file>);
+```
+Upload a file in the given report+ id + field 
 
 ### Custom API calls
 
