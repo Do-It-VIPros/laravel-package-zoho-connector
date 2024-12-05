@@ -266,7 +266,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 $full_url,
                 $json_body
             );
-
+            
             //CHECK RESPONSE
             $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
             
@@ -283,7 +283,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             return $response->json()["data"];
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            return "KO";
+            return ["KO"];
         }
     }
 
@@ -304,7 +304,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function upload(string $report, int $id, string $field, string $file) : string {
+    public function upload(string $report, int $id, string $field, string $file) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -318,18 +318,24 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
-
-            $json_body = ["file" => $file];
-
+            //GENERATION OF A LOCAL FILE TMP IF FROM URL
+            if(filter_var($file, FILTER_VALIDATE_URL)){
+                $tmp_file = basename(parse_url($file, PHP_URL_PATH));
+                file_put_contents($tmp_file, file_get_contents($file));
+                $file = public_path($tmp_file);
+            }
+            //return $file;
             //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
-                $full_url,
-                $json_body
+            $response = Http::withHeaders($this->getHeaders())->attach(
+                'file', fopen($file, 'r'), basename($file)
+            )->post(
+                $full_url
             );
-
+            //DELETE THE TMP FILE
+            if(isset($tmp_file)){unlink($tmp_file);}
             //CHECK RESPONSE
             $this->ZohoResponseCheck($response,"ZohoCreator.report.CREATE");
-            
+            return $response;
             //RETURN
             return $response->json()["filepath"];
         } catch (Exception $e) {
