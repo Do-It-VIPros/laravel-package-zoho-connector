@@ -23,6 +23,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         $this->data_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/data/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name');
         $this->bulk_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/bulk/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/report/";
         $this->custom_base_url = config('zohoconnector.api_base_url') . "/creator/custom/" . config('zohoconnector.user') . "/";
+        $this->meta_base_url = config('zohoconnector.api_base_url') . "/creator/v2.1/meta/" . config('zohoconnector.user') . "/" . config('zohoconnector.app_name') . "/";
     }
 
     /**
@@ -319,6 +320,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
             //GENERATION OF A LOCAL FILE TMP IF FROM URL
+            //TODO rendre le path du fichier paramétrable :)
             if(filter_var($file, FILTER_VALIDATE_URL)){
                 $tmp_file = basename(parse_url($file, PHP_URL_PATH));
                 file_put_contents($tmp_file, file_get_contents($file));
@@ -601,7 +603,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 $full_url,
             );
 
-            $this->ZohoResponseCheck($response,"ZohoCreator.bulk.READ");
+            //$this->ZohoResponseCheck($response,"ZohoCreator.bulk.READ");
 
             return $zip_location;
         } catch (Exception $e) {
@@ -753,6 +755,145 @@ class ZohoCreatorService extends ZohoTokenManagement {
         }
     }
 
+    ///////// META INFORMATIONS /////////
+
+    /**
+     * 🌐🔐 getFormsMeta()
+     *
+     *  Return the meta information of all the forms present in a Zoho Creator application.
+     *
+     * 🚀 Return the meta information of all the forms present in a Zoho Creator application.
+     * 📝 Context: ZohoCreatorService need to be ready
+     *
+     * @return array forms meta as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getFormsMeta() : array|string {
+        try {
+            $this->ZohoServiceCheck();
+
+            //URL
+            $full_url = $this->meta_base_url . "forms";
+
+            //REQUEST
+            $response = Http::withHeaders($this->getHeaders())->get(
+                $full_url
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
+
+            return $response->json()["forms"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * 🌐🔐 getFieldsMeta()
+     *
+     *  Return the meta information of all the fields present in a form of a Zoho Creator application.
+     *
+     * 🚀 Return the meta information of all the fields present in a form of a Zoho Creator application.
+     * 📝 Context: ZohoCreatorService need to be ready
+     *
+     * @param string        $form         required    name of the form to gather fields
+     * 
+     * @return array fields meta informations as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getFieldsMeta(string $form) : array|string {
+        try {
+            $this->ZohoServiceCheck();
+
+            //URL
+            $full_url = $this->meta_base_url . "form/" . $form . "/fields";
+
+            //REQUEST
+            $response = Http::withHeaders($this->getHeaders())->get(
+                $full_url
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.form.READ");
+
+            return $response->json()["fields"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * 🌐🔐 getReportsMeta()
+     *
+     *  Return the meta information of all the reports present in a Zoho Creator application.
+     *
+     * 🚀 Return the meta information of all the reports present in a Zoho Creator application.
+     * 📝 Context: ZohoCreatorService need to be ready
+     *
+     * @return array reports meta as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getReportsMeta() : array|string {
+        try {
+            $this->ZohoServiceCheck();
+
+            //URL
+            $full_url = $this->meta_base_url . "reports";
+
+            //REQUEST
+            $response = Http::withHeaders($this->getHeaders())->get(
+                $full_url
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
+
+            return $response->json()["reports"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * 🌐🔐 getPagesMeta()
+     *
+     *  Return the meta information of all the pages present in a Zoho Creator application.
+     *
+     * 🚀 Return the meta information of all the pages present in a Zoho Creator application.
+     * 📝 Context: ZohoCreatorService need to be ready
+     *
+     * @return array page meta as an json array
+     *
+     * @throws \Exception If an error occurs during the process, it logs the error.
+     */
+    public function getPagesMeta() : array|string {
+        try {
+            $this->ZohoServiceCheck();
+
+            //URL
+            $full_url = $this->meta_base_url . "pages";
+
+            //REQUEST
+            $response = Http::withHeaders($this->getHeaders())->get(
+                $full_url
+            );
+
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
+
+            return $response->json()["pages"];
+        } catch (Exception $e) {
+            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            return [];
+        }
+    }
 
     ///////// TOOLS SECTION ////////
 
