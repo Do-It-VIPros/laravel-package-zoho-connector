@@ -16,17 +16,26 @@
 - [Usage](#Usage)
   - [Basic exemple](#Basic-exemple)
   - [Availables functions](#Availables-functions)
-    - [Get from Report](#Get-from-Report)
-    - [Get All from Report](#Get-All-from-Report)
-    - [Get by ID](#Get-by-ID)
-    - [Create](#Create)
-    - [Update](#Update)
-    - [Upload](#Upload)
+    - [CRUD functions](#CRUD-functions)
+      - [Get from Report](#Get-from-Report)
+      - [Get All from Report](#Get-All-from-Report)
+      - [Get by ID](#Get-by-ID)
+      - [Create](#Create)
+      - [Update](#Update)
+      - [Upload](#Upload)
+    - [Custom functions](#Custom-functions)
+      - [Custom GET](#Custom-GET)
+      - [Custom POS](#Custom-POST)
     - [Bulk operations](#Bulk-operations)
       - [Automated gestion](#Automated-gestion)
       - [Create bulk](#Create-bulk)
       - [Read Bulk infos](#Read-Bulk-infos)
       - [Download bulk](#Download-bulk)
+    - [META functions](#META-functions)
+      - [Get Forms Meta informations](#Get-Forms-Meta-informations)
+      - [Get Fields Meta informations](#Get-Fields-Meta-informations)
+      - [Get Reports Meta informations](#Get-Reports-Meta-informations)
+      - [Get Pages Meta informations](#Get-Pages-Meta-informations)
   - [Todo](#Todo)
 
 ## General
@@ -116,7 +125,9 @@ public static function test() {
 
 ## Availables functions
 
-### Get from Report
+### CRUD functions
+
+#### Get from Report
 
 ``` php
 ZohoCreatorApi::get(<report_name>,<criterias>="",&<cursor>="");
@@ -129,7 +140,7 @@ Check at ZohoCreatorApi::getAll() code function to see how handle the cursor and
 
 [See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
 
-### Get All from Report
+#### Get All from Report
 
 ``` php
 ZohoCreatorApi::getAll(<report_name>,<criterias>="");
@@ -140,7 +151,7 @@ This function may be very long. Look at the function to see who use it.
 
 [See criterias by Zoho](https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria).
 
-### Get by ID
+#### Get by ID
 
 ``` php
 ZohoCreatorApi::getByID(<report_name>,<object_id>);
@@ -149,30 +160,30 @@ Return the found record as an array.
 
 field_config is set to "all".
 
-### Create
+#### Create
 
 ``` php
 ZohoCreatorApi::create(<form_name>,<attributes>,<additional_fields>=[]);
 ```
 Add a record in the form with the given attributes
 
-### Update
+#### Update
 
 ``` php
 ZohoCreatorApi::update(<report_name>,<id>,<attributes>,<additional_fields>=[]);
 ```
 Update a record with the given attributes
 
-### Upload
+#### Upload
 
 ``` php
 ZohoCreatorApi::upload(<report_name>,<id>,<field>,<file>);
 ```
 Upload a file in the given report+ id + field 
 
-### Custom API calls
+### Custom functions
 
-#### GET
+#### Custom GET
 
 ``` php
 ZohoCreatorApi::customFunctionGet(<url>,<parameters>=[],<public_key>="");
@@ -181,7 +192,7 @@ Call a custom zoho creator API function with GET.
 If a public key is given, it will be added to the request.
 If there is no public key, the auth token will be used.
 
-#### POST
+#### Custom POST
 
 ``` php
 ZohoCreatorApi::customFunctionPost(<url>,<datas>=[],<public_key>="");
@@ -241,6 +252,40 @@ Return the bulk request infos as an array.
   ZohoCreatorApi::downloadBulk(<report_name>,<bulk_id>="");
 ```
 Download the bulk request result in the ZOHO_BULK_DOWNLOAD_PATH.
+
+### META functions
+
+#### Get Forms Meta informations
+
+``` php
+ZohoCreatorApi::getFormsMeta();
+```
+Return the meta information of all the forms present in a Zoho Creator application.
+Require the scope ZohoCreator.meta.application.READ
+
+#### Get Fields Meta informations
+
+``` php
+ZohoCreatorApi::getFieldsMeta(<form>);
+```
+Return the meta information of all the fields of a form.
+Require the scope ZohoCreator.meta.form.READ
+
+#### Get Reports Meta informations
+
+``` php
+ZohoCreatorApi::getReportsMeta();
+```
+Return the meta information of all the reports present in a Zoho Creator application.
+Require the scope ZohoCreator.meta.application.READ
+
+#### Get Pages Meta informations
+
+``` php
+ZohoCreatorApi::getPagesMeta();
+```
+Return the meta information of all the pages present in a Zoho Creator application.
+Require the scope ZohoCreator.meta.application.READ
 
 ## Todo
  - Create Tests function
