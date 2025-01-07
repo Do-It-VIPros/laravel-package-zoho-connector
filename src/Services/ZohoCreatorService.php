@@ -247,7 +247,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function update(string $report, int $id, array $attributes, array $additional_fields = []) : array {
+    public function update(string $report, int|string $id, array $attributes, array $additional_fields = []) : array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -305,7 +305,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function upload(string $report, int $id, string $field, string $file) : string|array {
+    public function upload(string $report, int|string $id, string $field, string $file) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
