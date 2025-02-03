@@ -321,8 +321,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
-            //GENERATION OF A LOCAL FILE TMP IF FROM URL
-            //TODO rendre le path du fichier paramétrable :)
+            //(ABORTED) GENERATION OF A LOCAL FILE TMP IF FROM URL
             /*if(filter_var($file, FILTER_VALIDATE_URL)){
                 $tmp_file = basename(parse_url($file, PHP_URL_PATH));
                 file_put_contents($tmp_file, file_get_contents($file));
@@ -339,9 +338,8 @@ class ZohoCreatorService extends ZohoTokenManagement {
             if(isset($tmp_file)){unlink($tmp_file);}
             //CHECK RESPONSE
             $this->ZohoResponseCheck($response,"ZohoCreator.report.CREATE");
-            return $response;
             //RETURN
-            return $response->json()["filepath"];
+            return $response->json();
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return "KO";
