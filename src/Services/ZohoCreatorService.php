@@ -100,12 +100,13 @@ class ZohoCreatorService extends ZohoTokenManagement {
      * 
      * @param string        $report     required    name of the report where to get informations
      * @param string|array  $criteria   optional    criteria as indicated in https://www.zoho.com/creator/help/api/v2.1/get-records.html#search_criteria
+     * @param int           $delay      optional    delay in seconds (default 2 to avoid the limitation of 50 calls by seconds)
      *
      * @return array datas as an json array
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getAll(string $report, string|array $criteria = "") : array {
+    public function getAll(string $report, string|array $criteria = "", int $delay = 2) : array {
         try {
             $this->ZohoServiceCheck();
            
@@ -113,6 +114,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
             $found_datas = $this->get($report, $criteria, $cursor);
             while($cursor != "") {
+                sleep($delay);
                 $found_datas = array_merge($found_datas,$this->get($report, $criteria, $cursor));
             }
 
@@ -319,13 +321,12 @@ class ZohoCreatorService extends ZohoTokenManagement {
 
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
-            //GENERATION OF A LOCAL FILE TMP IF FROM URL
-            //TODO rendre le path du fichier paramétrable :)
-            if(filter_var($file, FILTER_VALIDATE_URL)){
+            //(ABORTED) GENERATION OF A LOCAL FILE TMP IF FROM URL
+            /*if(filter_var($file, FILTER_VALIDATE_URL)){
                 $tmp_file = basename(parse_url($file, PHP_URL_PATH));
                 file_put_contents($tmp_file, file_get_contents($file));
                 $file = public_path($tmp_file);
-            }
+            }*/
             //return $file;
             //REQUEST
             $response = Http::withHeaders($this->getHeaders())->attach(
@@ -337,9 +338,8 @@ class ZohoCreatorService extends ZohoTokenManagement {
             if(isset($tmp_file)){unlink($tmp_file);}
             //CHECK RESPONSE
             $this->ZohoResponseCheck($response,"ZohoCreator.report.CREATE");
-            return $response;
             //RETURN
-            return $response->json()["filepath"];
+            return $response->json();
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return "KO";

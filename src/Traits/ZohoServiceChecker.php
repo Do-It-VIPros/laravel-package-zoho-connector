@@ -41,6 +41,7 @@ trait ZohoServiceChecker
             }
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::error('Received return ' . $response->json());
             throw new Exception($e->getMessage());
         }
     }
