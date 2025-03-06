@@ -324,6 +324,17 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 throw new Exception("Missing required parameter", 503);
             }
 
+            //if it's an URL, we store it in a tmp file
+            if(filter_var($file, FILTER_VALIDATE_URL) !== false) {
+                $headers = get_headers($file, 1);
+                if (!$headers || strpos($headers[0], '200') === false) {
+                    throw new Exception("$file : File not found", 503);
+                }
+                $tmp_file = tempnam(sys_get_temp_dir(), 'upload_') . "." . pathinfo(parse_url($file, PHP_URL_PATH), PATHINFO_EXTENSION);
+                file_put_contents($tmp_file , file_get_contents($file));
+                $file = $tmp_file;
+            }
+            
             //FILE CHECK
             if (!file_exists($file)) {
                 throw new Exception($file  . " : File not found", 503);
@@ -335,15 +346,10 @@ class ZohoCreatorService extends ZohoTokenManagement {
             if (!$file_as_data) {
                 throw new Exception($file  . " : fopen failed", 503);
             }
+            
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
-            //(ABORTED) GENERATION OF A LOCAL FILE TMP IF FROM URL
-            /*if(filter_var($file, FILTER_VALIDATE_URL)){
-                $tmp_file = basename(parse_url($file, PHP_URL_PATH));
-                file_put_contents($tmp_file, file_get_contents($file));
-                $file = public_path($tmp_file);
-            }*/
-            //return $file;
+
             //REQUEST
             $response = Http::withHeaders($this->getHeaders())->attach(
                 'file',  $file_as_data, basename($file)
@@ -357,6 +363,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             //RETURN
             return $response->json();
         } catch (Exception $e) {
+            if (!empty($tmp_file) && file_exists($tmp_file)) {unlink($tmp_file);}
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
             throw new Exception($log_error, 503);
