@@ -85,7 +85,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
     
@@ -123,7 +123,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -166,7 +166,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -231,7 +231,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -291,7 +291,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -359,7 +359,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -412,7 +412,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -460,7 +460,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -513,7 +513,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -553,7 +553,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -582,7 +582,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -630,7 +630,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -666,7 +666,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -692,7 +692,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -717,7 +717,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -743,7 +743,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -777,7 +777,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -814,7 +814,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -851,7 +851,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -886,7 +886,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -921,7 +921,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -955,7 +955,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -994,7 +994,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
@@ -1016,7 +1016,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
-            throw($log_error);
+            throw new Exception($log_error, 503);
         }
     }
 
