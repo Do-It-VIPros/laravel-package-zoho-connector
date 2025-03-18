@@ -1,6 +1,6 @@
 {
     "name": "agencedoit/zohoconnector",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "type": "library",
     "description": "Zoho Creator API connector for Laravel",
     "autoload": {
