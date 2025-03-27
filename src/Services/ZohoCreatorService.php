@@ -330,7 +330,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 if (!$headers || strpos($headers[0], '200') === false) {
                     throw new Exception("$file : File not found", 503);
                 }
-                $tmp_file = tempnam(sys_get_temp_dir(), 'upload_') . "." . pathinfo(parse_url($file, PHP_URL_PATH), PATHINFO_EXTENSION);
+                $tmp_file = tempnam(sys_get_temp_dir(), pathinfo($file)['filename'] . '_') . "." . pathinfo(parse_url($file, PHP_URL_PATH), PATHINFO_EXTENSION);
                 file_put_contents($tmp_file , file_get_contents($file));
                 $file = $tmp_file;
             }
