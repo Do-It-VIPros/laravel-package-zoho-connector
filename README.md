@@ -92,7 +92,7 @@ Comming soon.
 
 
 ### Initalize
-
+- us php artisan migrate
 - Be sure to have the APP_URL env var set.
 - Get a client_id and a client_secret from ZOHO => [Requirements](#Requirements).
 - Fill the Environnements variables as described in [Environnements variables](#Environnements-variables).
