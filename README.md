@@ -1,6 +1,8 @@
 
 # Laravel package - Zoho Connector
-
+```
+composer require agencedoit/zohoconnector
+```
 ## Table of contents
 - [Laravel package - Zoho Connector](#laravel-package---zoho-connector)
   - [Table of contents](#table-of-contents)
