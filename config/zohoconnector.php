@@ -33,4 +33,6 @@ return [
     'bulk_queue' => env('ZOHO_BULK_QUEUE', 'default'),
 
     'environment' => env('ZOHO_CREATOR_ENVIRONMENT', 'production'),
+
+    'request_timeout' => env('ZOHO_REQUEST_TIMEOUT', 30),
 ];

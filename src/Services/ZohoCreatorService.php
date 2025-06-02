@@ -70,7 +70,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
             if($cursor != "") {$headers["record_cursor"] = $cursor;}
 
             //REQUEST
-            $response = Http::withHeaders($headers)->get(
+            $response = Http::withHeaders($headers)->timeout(config('zohoconnector.request_timeout'))->get(
                 $full_url,
                 $parmeters
             );
