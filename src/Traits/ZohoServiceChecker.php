@@ -38,17 +38,17 @@ trait ZohoServiceChecker
                     throw new Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
                 }
                 else if($response->json()["code"] != 3000){
-                    throw new Exception(implode ($response->json()));
+                    throw new Exception(implode($response->json()));
                 }
             }
             else {
                 if($response->json()["code"] != 3000){
-                    throw new Exception(json_encode($response->json()));
+                    throw new Exception(implode($response->json()));
                 }
             }
         } catch (Exception $e) {
             Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            Log::error('Received return ' . $response->json()->toString());
+            Log::error('Received return ' . implode($response->json()));
             throw new Exception($e->getMessage());
         }
     }
