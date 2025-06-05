@@ -87,6 +87,7 @@ Comming soon.
 |ZOHO_APP_NAME|Yes| Your Zoho App identifier | - | Default value : zylker-store|
 |ZOHO_TOKENS_TABLE|No| tokens table name | - | Default value : zoho_connector_tokens |
 |ZOHO_CREATOR_ENVIRONMENT|No| Environnement to reach during the ZohoAPI calls (see [Zoho environnements](https://www.zoho.com/creator/help/deploy/environments/understand-environments.html))  | - | Default value : production |
+|ZOHO_REQUEST_TIMEOUT|No| Timeout for the get request | - | Default value : 30|
 | ----------- | -- | -------- | ------ | ---- |
 |ZOHO_BULK_DOWNLOAD_PATH|No| Path where the ZIP from bulk are loaded | - | Default value : storage_path("zohoconnector") |
 |ZOHO_BULKS_TABLE|No| bulk process table name | - | Default value : zoho_connector_bulk_history |
