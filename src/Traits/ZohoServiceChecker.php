@@ -27,29 +27,37 @@ trait ZohoServiceChecker
         }
     }
 
-    protected function ZohoResponseCheck(Response $response, string $specific="") : void
-    {
-        try {
-            //request error
-            if(!$response->successful()){
-                //Zoho error
-                if($response->json()["code"] == 2945){
-                    //scope error
-                    throw new Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
-                }
-                else if($response->json()["code"] != 3000){
-                    throw new Exception(implode($response->json()));
-                }
+   protected function ZohoResponseCheck(Response $response, string $specific = ""): void
+{
+    Log::info('📨 Réponse complète de Zoho', [
+    'zoho_response' => $response->json() ?? [],
+]);
+
+    try {
+        $json = $response->json();
+
+        if (!$response->successful() || !isset($json['code']) || $json['code'] != 3000) {
+            // Gestion spécifique code 2945 (scope)
+            if (isset($json['code']) && $json['code'] == 2945) {
+                throw new \Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
             }
-            else {
-                if($response->json()["code"] != 3000){
-                    throw new Exception(implode($response->json()));
-                }
+
+            // 🔎 Construction du message d'erreur lisible
+            $message = 'Erreur Zoho : ';
+
+            if (isset($json['error']) && is_array($json['error'])) {
+                $message .= implode('; ', $json['error']);
+            } elseif (isset($json['message'])) {
+                $message .= $json['message'];
+            } else {
+                $message .= json_encode($json);
             }
-        } catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            Log::error('Received return ' . (is_array($response->json()) ? implode($response->json()) : $response->toString()));
-            throw new Exception($e->getMessage());
+
+            throw new \Exception($message);
         }
+    } catch (Exception $e) {
+        Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+        throw new \Exception($e->getMessage(), 503);
     }
+}
 }
