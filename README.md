@@ -1,6 +1,8 @@
 
 # Laravel package - Zoho Connector
-
+```
+composer require agencedoit/zohoconnector
+```
 ## Table of contents
 - [Laravel package - Zoho Connector](#laravel-package---zoho-connector)
   - [Table of contents](#table-of-contents)
@@ -93,7 +95,7 @@ Comming soon.
 
 
 ### Initalize
-
+- us php artisan migrate
 - Be sure to have the APP_URL env var set.
 - Get a client_id and a client_secret from ZOHO => [Requirements](#Requirements).
 - Fill the Environnements variables as described in [Environnements variables](#Environnements-variables).
