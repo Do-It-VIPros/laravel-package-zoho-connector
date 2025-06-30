@@ -29,10 +29,7 @@ trait ZohoServiceChecker
 
    protected function ZohoResponseCheck(Response $response, string $specific = ""): void
 {
-    Log::info('📨 Réponse complète de Zoho', [
-    'zoho_response' => $response->json() ?? [],
-]);
-
+ 
     try {
         $json = $response->json();
 
