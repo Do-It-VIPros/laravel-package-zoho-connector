@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     bootstrap="vendor/autoload.php"
+     backupGlobals="false"
+     colors="true"
+     processIsolation="false"
+     stopOnFailure="false"
+     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
+     cacheDirectory=".phpunit.cache"
+     backupStaticProperties="false"
+>
+  <coverage/>
+  <testsuites>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">./tests/Unit</directory>
+    </testsuite>
+    <testsuite name="Feature">
+      <directory suffix="Test.php">./tests/Feature</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <env name="APP_ENV" value="testing"/>
+    <env name="CACHE_DRIVER" value="array"/>
+    <env name="QUEUE_DRIVER" value="sync"/>
+    <env name="DB_CONNECTION" value="sqlite"/>
+    <env name="DB_DATABASE" value=":memory:"/>
+    <env name="ZOHO_ENABLED" value="false"/>
+    <env name="ZOHO_TEST_MODE" value="true"/>
+    <env name="ZOHO_MOCK_RESPONSES" value="true"/>
+  </php>
+  <source>
+    <include>
+      <directory suffix=".php">src/</directory>
+    </include>
+  </source>
+</phpunit>
