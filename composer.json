@@ -24,7 +24,28 @@
         }
     },
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0"
     },
-    "license": "proprietary"
+    "require-dev": {
+        "pestphp/pest": "^2.0",
+        "orchestra/testbench": "^9.0|^10.0",
+        "mockery/mockery": "^1.4",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Agencedoit\\ZohoConnector\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test-coverage": "pest --coverage"
+    },
+    "license": "proprietary",
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

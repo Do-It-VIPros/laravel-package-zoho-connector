@@ -1,0 +1,73 @@
+{
+  "_fixture_meta": {
+    "version": "1.0",
+    "created_at": "2025-01-06T12:00:00Z",
+    "description": "Common error responses from Zoho Creator API",
+    "zoho_api_version": "2.1"
+  },
+  "rate_limit": {
+    "code": 2955,
+    "message": "You have reached your API call limit for a minute",
+    "details": "Maximum 50 API calls per minute exceeded"
+  },
+  "invalid_token": {
+    "code": 1030,
+    "message": "Authorization Failure. The access token is either invalid or has expired",
+    "details": "Token needs to be refreshed or regenerated"
+  },
+  "expired_token": {
+    "code": 6001,
+    "message": "Access token expired",
+    "details": "The access token has expired. Please refresh the token."
+  },
+  "report_not_found": {
+    "code": 3001,
+    "message": "Report not found",
+    "details": "The specified report does not exist or is not accessible"
+  },
+  "form_not_found": {
+    "code": 3002,
+    "message": "Form not found",
+    "details": "The specified form does not exist or is not accessible"
+  },
+  "record_not_found": {
+    "code": 3003,
+    "message": "Record not found",
+    "details": "The specified record does not exist"
+  },
+  "permission_denied": {
+    "code": 1130,
+    "message": "API access permission disabled",
+    "details": "User does not have the required API permissions"
+  },
+  "validation_failed": {
+    "code": 3100,
+    "message": "Validation failed",
+    "details": "One or more field values are invalid"
+  },
+  "server_error": {
+    "code": 5000,
+    "message": "Internal server error",
+    "details": "An unexpected error occurred. Please try again later."
+  },
+  "maintenance_mode": {
+    "code": 5001,
+    "message": "Service temporarily unavailable",
+    "details": "The service is under maintenance. Please try again later."
+  },
+  "quota_exceeded": {
+    "code": 4800,
+    "message": "API quota exceeded",
+    "details": "You have exceeded your API usage quota for this period"
+  },
+  "file_too_large": {
+    "code": 4002,
+    "message": "File size exceeds limit",
+    "details": "The uploaded file is too large. Maximum file size is 50MB."
+  },
+  "invalid_file_type": {
+    "code": 4003,
+    "message": "Invalid file type",
+    "details": "The file type is not supported for this field"
+  }
+}

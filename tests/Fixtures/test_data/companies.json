@@ -1,0 +1,123 @@
+{
+  "_fixture_meta": {
+    "version": "1.0",
+    "description": "Test company data compatible with VIPros Elastic Models",
+    "entity_type": "company"
+  },
+  "test_company_1": {
+    "ID": "61757000058385531",
+    "denomination": "VIPros Test Company Ltd",
+    "siren": "123456789",
+    "siret": "12345678901234",
+    "vipros_number": "VP123456",
+    "company_status": "active",
+    "localisation": {
+      "ID": "61757000000001111",
+      "name": "France",
+      "zc_display_value": "France"
+    },
+    "vipoints_balance": {
+      "ID": "61757000000002222",
+      "balance": "1000.50",
+      "zc_display_value": "1000.50"
+    },
+    "cashback_balance": {
+      "ID": "61757000000003333",
+      "balance": 250.75,
+      "available_balance": 200.00,
+      "zc_display_value": "250.75"
+    },
+    "glady_id": "GLADY001",
+    "is_test": false,
+    "Added_Time": "2025-01-01T00:00:00Z",
+    "Modified_Time": "2025-01-01T00:00:00Z"
+  },
+  "test_company_2": {
+    "ID": "61757000058385532",
+    "denomination": "Another Test SARL",
+    "siren": "987654321",
+    "siret": "98765432109876",
+    "vipros_number": "VP789012",
+    "company_status": "pending",
+    "localisation": {
+      "ID": "61757000000001112",
+      "name": "Belgium",
+      "zc_display_value": "Belgium"
+    },
+    "vipoints_balance": {
+      "ID": "61757000000002223",
+      "balance": "500.00",
+      "zc_display_value": "500.00"
+    },
+    "cashback_balance": {
+      "ID": "61757000000003334",
+      "balance": 75.25,
+      "available_balance": 75.25,
+      "zc_display_value": "75.25"
+    },
+    "glady_id": "GLADY002",
+    "is_test": false,
+    "Added_Time": "2025-01-02T00:00:00Z",
+    "Modified_Time": "2025-01-02T00:00:00Z"
+  },
+  "test_company_inactive": {
+    "ID": "61757000058385533",
+    "denomination": "Inactive Company Ltd",
+    "siren": "555666777",
+    "siret": "55566677788899",
+    "vipros_number": "VP345678",
+    "company_status": "inactive",
+    "localisation": {
+      "ID": "61757000000001113",
+      "name": "Spain",
+      "zc_display_value": "Spain"
+    },
+    "vipoints_balance": {
+      "ID": "61757000000002224",
+      "balance": "0.00",
+      "zc_display_value": "0.00"
+    },
+    "cashback_balance": {
+      "ID": "61757000000003335",
+      "balance": 0.00,
+      "available_balance": 0.00,
+      "zc_display_value": "0.00"
+    },
+    "glady_id": "GLADY003",
+    "is_test": false,
+    "Added_Time": "2025-01-03T00:00:00Z",
+    "Modified_Time": "2025-01-03T00:00:00Z"
+  },
+  "batch_test_data": [
+    {
+      "ID": "61757000058385540",
+      "denomination": "Batch Company 1",
+      "company_status": "active",
+      "vipros_number": "VP100001"
+    },
+    {
+      "ID": "61757000058385541", 
+      "denomination": "Batch Company 2",
+      "company_status": "active",
+      "vipros_number": "VP100002"
+    },
+    {
+      "ID": "61757000058385542",
+      "denomination": "Batch Company 3", 
+      "company_status": "pending",
+      "vipros_number": "VP100003"
+    },
+    {
+      "ID": "61757000058385543",
+      "denomination": "Batch Company 4",
+      "company_status": "active",
+      "vipros_number": "VP100004"
+    },
+    {
+      "ID": "61757000058385544",
+      "denomination": "Batch Company 5",
+      "company_status": "inactive", 
+      "vipros_number": "VP100005"
+    }
+  ]
+}
