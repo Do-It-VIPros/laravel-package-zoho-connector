@@ -25,29 +25,59 @@ class ZohoApiMockingHelper
             // Auth endpoints (correct OAuth2 structure)
             'accounts.zoho.*/oauth/v2/token' => Http::response(createZohoTokenData()),
             
-            // Data endpoints (v2.1 structure: /creator/v2.1/data/{owner}/{app}/report/{report})
-            'www.zohoapis.*/creator/v2.1/data/*/*/report/*' => Http::response([
-                'code' => 3000,
-                'data' => [createZohoReportData()],
-                'info' => [
-                    'count' => 1,
-                    'more_records' => false
-                ]
-            ]),
+            // Data endpoints with v2.1 parameter support
+            'www.zohoapis.*/creator/v2.1/data/*/*/report/*' => function ($request) {
+                $maxRecords = $request->query('max_records', 200);
+                $fieldConfig = $request->query('field_config', 'quick_view');
+                $acceptHeader = $request->header('accept', 'application/json');
+                
+                $data = [createZohoReportData()];
+                
+                // Handle CSV response
+                if ($acceptHeader === 'text/csv') {
+                    return Http::response(
+                        "ID,Added_Time,Modified_Time\n61757000058385531,2025-01-06T10:00:00Z,2025-01-06T10:00:00Z",
+                        200,
+                        ['Content-Type' => 'text/csv']
+                    );
+                }
+                
+                return Http::response([
+                    'code' => 3000,
+                    'data' => array_slice($data, 0, min($maxRecords, 1000)),
+                    'info' => [
+                        'count' => count($data),
+                        'more_records' => false,
+                        'field_config' => $fieldConfig
+                    ]
+                ]);
+            },
             
-            // Form endpoints (v2.1 structure: /creator/v2.1/data/{owner}/{app}/form/{form})
-            'www.zohoapis.*/creator/v2.1/data/*/*/form/*' => Http::response([
-                'code' => 3000,
-                'data' => [createZohoReportData()]
-            ]),
+            // Form endpoints with skip_workflow support
+            'www.zohoapis.*/creator/v2.1/data/*/*/form/*' => function ($request) {
+                $body = json_decode($request->body(), true);
+                $skipWorkflow = $body['skip_workflow'] ?? [];
+                
+                return Http::response([
+                    'result' => [[
+                        'code' => 3000,
+                        'data' => array_merge(createZohoReportData(), ['ID' => '3888834000000114050']),
+                        'message' => 'Data Added Successfully!'
+                    ]]
+                ]);
+            },
             
-            // File upload endpoints
-            'www.zohoapis.*/creator/v2.1/data/*/*/report/*/*/upload' => Http::response([
-                'code' => 3000,
-                'filename' => 'test_file.jpg',
-                'filepath' => 'unique_test_file.jpg',
-                'message' => 'File uploaded successfully !'
-            ]),
+            // File upload endpoints with skip_workflow support
+            'www.zohoapis.*/creator/v2.1/data/*/*/report/*/*/upload' => function ($request) {
+                $skipWorkflow = $request->query('skip_workflow', []);
+                
+                return Http::response([
+                    'code' => 3000,
+                    'filename' => 'test_file.jpg',
+                    'filepath' => 'unique_test_file.jpg',
+                    'message' => 'File uploaded successfully !'
+                ]);
+            },
             
             // Meta endpoints (forms and applications)
             'www.zohoapis.*/creator/v2.1/meta/*/*' => Http::response([
@@ -104,6 +134,50 @@ class ZohoApiMockingHelper
         
         Http::fake([
             "www.zohoapis.*/creator/v2.1/data/*/report/{$report}*" => Http::sequence(...$responses)
+        ]);
+    }
+
+    /**
+     * Mock v2.1 pagination with record_cursor header
+     */
+    public static function mockRecordCursorPagination(string $report, array $pages): void
+    {
+        Http::fake([
+            "www.zohoapis.*/creator/v2.1/data/*/*/report/{$report}" => function ($request) use ($pages) {
+                $recordCursor = $request->header('record_cursor');
+                $maxRecords = $request->query('max_records', 200);
+                
+                if (!$recordCursor) {
+                    // First page
+                    $data = array_slice($pages[0], 0, $maxRecords);
+                    $hasMore = count($pages) > 1 || count($pages[0]) > $maxRecords;
+                    
+                    return Http::response([
+                        'code' => 3000,
+                        'data' => $data,
+                        'info' => [
+                            'count' => count($data),
+                            'more_records' => $hasMore,
+                            'record_cursor' => $hasMore ? 'cursor_page_1' : null
+                        ]
+                    ]);
+                } else {
+                    // Subsequent pages
+                    $pageIndex = (int) str_replace('cursor_page_', '', $recordCursor);
+                    $data = $pages[$pageIndex] ?? [];
+                    $hasMore = isset($pages[$pageIndex + 1]);
+                    
+                    return Http::response([
+                        'code' => 3000,
+                        'data' => array_slice($data, 0, $maxRecords),
+                        'info' => [
+                            'count' => count($data),
+                            'more_records' => $hasMore,
+                            'record_cursor' => $hasMore ? "cursor_page_" . ($pageIndex + 1) : null
+                        ]
+                    ]);
+                }
+            }
         ]);
     }
 
@@ -223,26 +297,39 @@ class ZohoApiMockingHelper
     }
 
     /**
-     * Simulate API rate limiting (50 calls per minute)
+     * Simulate API rate limiting - CRITICAL: 5 refresh tokens per minute (not 50 API calls)
+     * Note: Regular API calls have different limits, refresh tokens are limited to 5/min
      */
-    public static function simulateRateLimit(int $callCount = 50): void
+    public static function simulateRateLimit(int $callCount = 5, string $limitType = 'refresh'): void
     {
         $responses = [];
         
-        // First 50 calls succeed
-        for ($i = 0; $i < $callCount; $i++) {
+        if ($limitType === 'refresh') {
+            // First 5 refresh token calls succeed
+            for ($i = 0; $i < $callCount; $i++) {
+                $responses[] = Http::response(createZohoTokenData(), 200);
+            }
+            
+            // 6th refresh call fails
             $responses[] = Http::response([
-                'code' => 3000,
-                'data' => [createZohoReportData()],
-                'info' => ['count' => 1, 'more_records' => false]
-            ], 200);
+                'error' => 'invalid_request',
+                'error_description' => 'Rate limit exceeded for refresh token requests'
+            ], 429);
+        } else {
+            // Regular API calls (different limit structure)
+            for ($i = 0; $i < $callCount; $i++) {
+                $responses[] = Http::response([
+                    'code' => 3000,
+                    'data' => [createZohoReportData()],
+                    'info' => ['count' => 1, 'more_records' => false]
+                ], 200);
+            }
+            
+            $responses[] = Http::response([
+                'code' => 4000,
+                'message' => 'Developer API limit reached. Upgrade to execute more REST API calls.'
+            ], 429);
         }
-        
-        // 51st call fails with rate limit
-        $responses[] = Http::response([
-            'code' => 2955,
-            'message' => 'You have reached your API call limit for a minute'
-        ], 429);
         
         Http::fake([
             '*' => Http::sequence(...$responses)

@@ -60,6 +60,31 @@
     "message": "API quota exceeded",
     "details": "You have exceeded your API usage quota for this period"
   },
+  "developer_api_limit": {
+    "code": 4000,
+    "message": "Developer API limit reached. Upgrade to execute more REST API calls.",
+    "details": "Account API limit exceeded, upgrade required"
+  },
+  "account_record_limit": {
+    "code": 3060,
+    "message": "Account's record limit reached. Please upgrade to add more data.",
+    "details": "Account storage limit reached"
+  },
+  "max_records_fetch": {
+    "code": 3970,
+    "message": "Maximum 200 records can be fetched per request",
+    "details": "Request exceeds record fetch limit"
+  },
+  "max_records_process": {
+    "code": 3960,
+    "message": "Maximum 200 records can be processed per request",
+    "details": "Request exceeds record processing limit"
+  },
+  "max_records_add": {
+    "code": 3950,
+    "message": "Maximum 200 records can be added per request",
+    "details": "Request exceeds record addition limit"
+  },
   "file_too_large": {
     "code": 4002,
     "message": "File size exceeds limit",

@@ -271,6 +271,39 @@ function mockZohoResponse(string $report, array $data): void
     // The actual implementation would use ZohoApiMockingHelper
 }
 
+// V2.1 specific helper functions
+function createZohoV21GetRequest(array $params = []): array
+{
+    return array_merge([
+        'field_config' => 'quick_view',
+        'max_records' => 200,
+        'criteria' => null,
+        'fields' => null
+    ], $params);
+}
+
+function createZohoV21CreateRequest(array $data = [], array $options = []): array
+{
+    return array_merge([
+        'data' => $data ?: [createCompanyData()],
+        'skip_workflow' => $options['skip_workflow'] ?? [],
+        'result' => [
+            'fields' => $options['result_fields'] ?? [],
+            'message' => true,
+            'tasks' => true
+        ]
+    ], $options);
+}
+
+function mockZohoCSVResponse(array $data = []): string
+{
+    $csv = "ID,Added_Time,Modified_Time,denomination\n";
+    foreach ($data ?: [createCompanyData()] as $record) {
+        $csv .= "{$record['ID']},{$record['Added_Time']},{$record['Modified_Time']},{$record['denomination']}\n";
+    }
+    return $csv;
+}
+
 function zohoMockResponse(array $overrides = []): array
 {
     return array_merge([
