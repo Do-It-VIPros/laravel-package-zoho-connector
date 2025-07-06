@@ -2,6 +2,7 @@
     "name": "agencedoit/zohoconnector",
     "type": "library",
     "description": "Zoho Creator API connector for Laravel",
+    "keywords": ["laravel", "zoho", "creator", "api", "connector", "oauth2", "tested"],
     "autoload": {
         "psr-4": {
             "Agencedoit\\ZohoConnector\\": "src/"

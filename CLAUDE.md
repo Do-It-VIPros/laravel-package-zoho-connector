@@ -23,6 +23,12 @@ The **Zoho Connector** package (`agencedoit/zohoconnector`) is a Laravel package
 - **Metadata Access**: Retrieve forms, fields, reports, and pages metadata
 - **OAuth2 Authentication**: Automated token management and refresh
 
+### Testing Strategy
+- **Comprehensive Test Suite**: 4-phase testing implementation (Foundation, Unit, Feature, Integration)
+- **API v2.1 Validation**: Tests validated against official Zoho Creator API v2.1 documentation
+- **Documentation**: Complete testing strategy and implementation guide in `/tasks/` directory
+- **Coverage Target**: 95%+ test coverage across all package components
+
 ## Configuration
 
 ### Environment Variables
@@ -205,6 +211,17 @@ Required Zoho Creator API scopes:
 5. **Bulk Processing**: Set up queue workers for large data operations
 6. **Error Handling**: Monitor logs for API errors and token issues
 
+### Testing Implementation
+
+For comprehensive testing strategy and implementation:
+- **Main Guide**: `/tasks/task-tests-index.md` - Complete 4-phase testing strategy
+- **Phase 1**: `/tasks/task-tests-phase-1-foundation.md` - Infrastructure setup (✅ COMPLETED)
+- **Phase 2**: `/tasks/task-tests-phase-2-unit-tests.md` - Unit tests for core components
+- **Phase 3**: `/tasks/task-tests-phase-3-feature-tests.md` - Feature and workflow tests
+- **Phase 4**: `/tasks/task-tests-phase-4-integration.md` - Integration and cross-package tests
+
+Current Status: **Phase 1 Foundation COMPLETED** - API v2.1 validated, all infrastructure ready
+
 ## Security Considerations
 
 - Store Zoho credentials securely in environment variables
@@ -212,6 +229,18 @@ Required Zoho Creator API scopes:
 - Implement rate limiting for API calls
 - Secure token storage in database
 - Validate all input data before API calls
+
+## API Documentation
+
+### Zoho Creator API v2.1 Reference
+Complete local documentation available in `/docs/zoho-creator-api-doc/`:
+- **Authentication**: OAuth2 flow, token management, and security
+- **CRUD Operations**: Add, get, update, delete records with examples
+- **Status Codes**: Comprehensive error codes and troubleshooting
+- **File Operations**: Upload and manage file attachments
+- **API Features**: v2.1 improvements and parameter references
+
+Access the documentation via `/docs/zoho-creator-api-doc/README.md` for structured navigation.
 
 ## Version Compatibility
 
