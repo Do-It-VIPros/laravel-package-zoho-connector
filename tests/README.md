@@ -4,13 +4,13 @@ Ce guide explique l'architecture et l'usage des tests pour le package Zoho Conne
 
 ## 📊 Vue d'ensemble
 
-**114 tests** répartis en **2 catégories principales** pour une couverture complète :
+**141 tests** répartis en **2 catégories principales** pour une couverture complète :
 
 | Catégorie | Tests | Assertions | Durée | Description |
 |-----------|-------|------------|-------|-------------|
 | **Unit Tests** | 64 | 192 | ~0.25s | Tests des composants core |
-| **Mock Tests** | 50 | 311 | ~0.10s | Tests des workflows complets |
-| **TOTAL** | **114** | **503** | **~0.35s** | **Couverture complète** |
+| **Mock Tests** | 77 | 368 | ~0.50s | Tests des workflows + service methods |
+| **TOTAL** | **141** | **560** | **~0.75s** | **Couverture complète** |
 
 ## 🏗️ Architecture des Tests
 
@@ -25,11 +25,12 @@ tests/
 │   │   └── ZohoConnectorTokenTest.php
 │   └── UnitTestCase.php                # Base class pour Unit tests
 ├── Feature/                        # Tests fonctionnels
-│   ├── Mock/                           # Tests simulation (50 tests)
+│   ├── Mock/                           # Tests simulation (77 tests)
 │   │   ├── AuthenticationWorkflowTest.php
 │   │   ├── BulkOperationsWorkflowTest.php
 │   │   ├── ErrorHandlingAndEdgeCasesTest.php
 │   │   ├── SimpleMockTest.php
+│   │   ├── ZohoCreatorServiceMockTest.php  # Service method validation (27 tests)
 │   │   └── Pest.php                    # Config Pest pour mocks
 │   └── MockTestCase.php               # Base class pour Mock tests
 ├── Fixtures/                       # Données de test
@@ -97,6 +98,7 @@ composer test:foundation # Infrastructure uniquement
 - **Authentication** : OAuth2, token management, multi-domaines
 - **Bulk Operations** : Export/import, pagination, retry logic
 - **Error Handling** : Codes d'erreur, edge cases, timeouts
+- **Service Methods** : Validation directe de ZohoCreatorService (get, create, update, upload, getAll, getByID)
 - **Workflows** : Scénarios complets de bout en bout
 
 ## ⚙️ Configuration des Tests
@@ -109,14 +111,36 @@ composer test:foundation # Infrastructure uniquement
 - Isolation complète
 
 **`MockTestCase`** (`/Feature/MockTestCase.php`)
-- Configuration pour simulation de workflows
+- Configuration pour simulation de workflows avec base de données
 - HTTP, Queue, Storage fakés
+- Connexion DDEV MariaDB (host: 'db', port: 3306)
 - Mode mock activé
 
 ### Pest Configuration
 
 **`tests/Pest.php`** - Configuration globale
 **`tests/Feature/Mock/Pest.php`** - Configuration spécifique mocks
+
+### 🗃️ Connexions Base de Données
+
+**Unit Tests** - Pas de base de données
+- ✅ Tests complètement isolés
+- ✅ Aucune dépendance externe
+- ✅ Exécution ultra-rapide
+
+**Mock Tests** - Base de données DDEV
+- 🔗 **Host**: `db` (à l'intérieur du container DDEV)
+- 🔗 **Port**: `3306` (port interne MySQL)
+- 🔗 **Base**: `db` (base MariaDB 10.11)
+- 🔗 **Credentials**: `db` / `db`
+- ✅ Migrations automatiques au setup
+- ✅ Utilise la vraie structure de données
+- ✅ Tests OAuth tokens réels depuis la base
+
+**Sécurité Database**
+- 🛡️ Pas de credentials hardcodés
+- 🛡️ Variables d'environnement uniquement
+- 🛡️ Fallback sur valeurs de test sécurisées
 
 ## 🎯 Stratégie de Test
 
@@ -142,9 +166,9 @@ composer test:mock      # Si problème workflows
 ## 📊 Métriques de Qualité
 
 ### Performance
-- ⚡ **Total** : 0.35s pour 114 tests
+- ⚡ **Total** : 0.75s pour 141 tests
 - ⚡ **Unit** : 0.25s pour 64 tests
-- ⚡ **Mock** : 0.10s pour 50 tests
+- ⚡ **Mock** : 0.50s pour 77 tests (inclut service method validation)
 
 ### Fiabilité
 - 🛡️ **Déterministes** : 100% (aucune dépendance externe)
@@ -154,8 +178,34 @@ composer test:mock      # Si problème workflows
 ### Couverture
 - ✅ **Infrastructure** : 100%
 - ✅ **Models** : 100%
+- ✅ **Service Methods** : 100% (validation directe ZohoCreatorService)
 - ✅ **Workflows** : 100%
 - ✅ **Edge Cases** : 100%
+
+## 🔧 Service Method Validation
+
+### ZohoCreatorServiceMockTest.php (27 tests)
+
+**Objectif** : Validation directe des méthodes du service principal
+- ✅ Instantiation directe : `new ZohoCreatorService()`
+- ✅ Appels de méthodes réels avec base de données DDEV
+- ✅ Simulation HTTP avec structures API Zoho v2.1 conformes
+
+**Méthodes testées :**
+- **get()** : Récupération de données avec critères et pagination
+- **getByID()** : Récupération par ID spécifique
+- **create()** : Création d'enregistrements
+- **update()** : Mise à jour d'enregistrements
+- **getAll()** : Récupération avec pagination automatique
+- **upload()** : Upload de fichiers
+
+**Scénarios couverts :**
+- ✅ Réponses API réussies avec données
+- ✅ Gestion des erreurs (404, 500, rate limit)
+- ✅ Validation des paramètres requis
+- ✅ Structures de requêtes HTTP (headers, corps, endpoints)
+- ✅ Critères de recherche (string et array complexe)
+- ✅ Gestion de la pagination et curseurs
 
 ## 🔧 Fixtures et Helpers
 

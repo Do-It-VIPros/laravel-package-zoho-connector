@@ -19,7 +19,8 @@ class MockTestCase extends Orchestra
 
     protected function getEnvironmentSetUp($app): void
     {
-        // Configuration pour tests mock SANS base de données
+        // Configuration pour tests avec base de données DDEV
+        $this->setupDDEVDatabaseConfig($app);
         $this->setupMockConfig($app);
         $this->setupCacheConfig($app);
     }
@@ -28,32 +29,59 @@ class MockTestCase extends Orchestra
     {
         parent::setUp();
         
-        // Configuration minimale pour tests mock
-        Http::fake();
+        // Utilise les migrations existantes de l'application principale
+        $this->artisan('migrate', ['--database' => 'mariadb']);
+        
+        // Configuration minimale pour tests - pas de Http::fake() global pour éviter les conflits
         Queue::fake();
         Storage::fake('local');
     }
 
     protected function setupMockConfig($app): void
     {
-        // Configuration Zoho pour tests mock - mode test activé
-        $app['config']->set('zohoconnector.test_mode', true);
-        $app['config']->set('zohoconnector.mock_mode', true);
+        // Configuration Zoho pour tests avec vraie API et vraie DB
+        $app['config']->set('zohoconnector.test_mode', false); // Utilise vraie validation
+        $app['config']->set('zohoconnector.mock_mode', false);
         
-        // Credentials mock
-        $app['config']->set('zohoconnector.client_id', 'mock_client');
-        $app['config']->set('zohoconnector.client_secret', 'mock_secret');
-        $app['config']->set('zohoconnector.user', 'mock_user');
-        $app['config']->set('zohoconnector.app_name', 'mock_app');
-        $app['config']->set('zohoconnector.scope', 'ZohoCreator.report.READ');
-        $app['config']->set('zohoconnector.base_account_url', 'https://accounts.zoho.eu');
-        $app['config']->set('zohoconnector.api_base_url', 'https://www.zohoapis.eu');
-        $app['config']->set('zohoconnector.environment', 'development');
-        $app['config']->set('zohoconnector.request_timeout', 5);
+        // Utilise les credentials du parent .env - test mode avec credentials sécurisés
+        $app['config']->set('zohoconnector.client_id', env('ZOHO_CLIENT_ID', 'test_client_id'));
+        $app['config']->set('zohoconnector.client_secret', env('ZOHO_CLIENT_SECRET', 'test_client_secret'));
+        $app['config']->set('zohoconnector.user', env('ZOHO_USER', 'test_user'));
+        $app['config']->set('zohoconnector.app_name', env('ZOHO_APP_NAME', 'test_app'));
+        $app['config']->set('zohoconnector.scope', env('ZOHO_SCOPE', 'ZohoCreator.report.ALL,ZohoCreator.bulk.CREATE,ZohoCreator.bulk.READ'));
         
-        // Tables (non utilisées en mode mock)
+        // URLs basées sur le domaine
+        $domain = env('ZOHO_ACCOUNT_DOMAIN', 'eu');
+        $app['config']->set('zohoconnector.base_account_url', "https://accounts.zoho.{$domain}");
+        $app['config']->set('zohoconnector.api_base_url', "https://www.zohoapis.{$domain}");
+        
+        $app['config']->set('zohoconnector.environment', env('ZOHO_CREATOR_ENVIRONMENT', 'development'));
+        $app['config']->set('zohoconnector.request_timeout', env('ZOHO_REQUEST_TIMEOUT', 90));
+        
+        // Tables
         $app['config']->set('zohoconnector.tokens_table_name', 'zoho_connector_tokens');
         $app['config']->set('zohoconnector.bulks_table_name', 'zoho_connector_bulk_history');
+    }
+
+
+
+    protected function setupDDEVDatabaseConfig($app): void
+    {
+        // Configuration base de données DDEV - utilise 'db' comme host à l'intérieur du container
+        $app['config']->set('database.default', 'mariadb');
+        $app['config']->set('database.connections.mariadb', [
+            'driver' => 'mysql',
+            'host' => 'db', // Host interne DDEV (à l'intérieur du container)
+            'port' => '3306', // Port standard MySQL à l'intérieur du container
+            'database' => 'db',
+            'username' => 'db', 
+            'password' => 'db',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ]);
     }
 
     protected function setupCacheConfig($app): void
@@ -65,7 +93,7 @@ class MockTestCase extends Orchestra
 
     protected function tearDown(): void
     {
-        Http::fake();
+        // Pas de Http::fake() global - laisse chaque test gérer ses propres mocks
         Queue::fake();
         Storage::fake('local');
         
