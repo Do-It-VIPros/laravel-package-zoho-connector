@@ -35,4 +35,22 @@ return [
     'environment' => env('ZOHO_CREATOR_ENVIRONMENT', 'production'),
 
     'request_timeout' => env('ZOHO_REQUEST_TIMEOUT', 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Test Mode Configuration
+    |--------------------------------------------------------------------------
+    | When test_mode is enabled, the service will bypass database/token checks
+    | Useful for testing, CI/CD, and environments without database setup
+    */
+    'test_mode' => env('ZOHO_TEST_MODE', false),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Mock Mode Configuration  
+    |--------------------------------------------------------------------------
+    | When mock_mode is enabled, API calls return mock responses
+    | Useful for testing without hitting real Zoho API
+    */
+    'mock_mode' => env('ZOHO_MOCK_MODE', false),
 ];

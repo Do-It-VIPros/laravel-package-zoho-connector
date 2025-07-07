@@ -13,6 +13,11 @@ trait ZohoServiceChecker
 {
     protected function ZohoServiceCheck() : void
     {
+        // En mode test, ignorer les vérifications de service
+        if (config('zohoconnector.test_mode', false)) {
+            return;
+        }
+        
         if (!ZohoCreatorApi::isReady()) {
             Log::error('ZohoCreatorService is not ready. Please init it.');
             Log::error('See ' . env("APP_URL") . '/zoho/test for more informations.');
