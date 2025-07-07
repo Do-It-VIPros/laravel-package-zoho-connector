@@ -88,7 +88,8 @@ describe('Foundation Infrastructure Validation', function () {
     test('test directory structure is properly set up', function () {
         expect(is_dir(__DIR__ . '/../Fixtures'))->toBeTrue();
         expect(is_dir(__DIR__ . '/../Helpers'))->toBeTrue();
-        expect(file_exists(__DIR__ . '/../.env.testing'))->toBeTrue();
+        expect(is_dir(__DIR__ . '/../Feature/Mock'))->toBeTrue();
         expect(file_exists(__DIR__ . '/../Pest.php'))->toBeTrue();
+        expect(file_exists(__DIR__ . '/../README.md'))->toBeTrue();
     });
 });

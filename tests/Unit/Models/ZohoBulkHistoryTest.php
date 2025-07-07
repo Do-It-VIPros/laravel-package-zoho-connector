@@ -31,7 +31,8 @@ describe('ZohoBulkHistory Model', function () {
             
             $model = new ZohoBulkHistory();
             
-            expect($model->getTable())->toBeNull();
+            // Eloquent utilise un fallback automatique basé sur le nom de classe
+            expect($model->getTable())->toBe('zoho_bulk_histories');
         });
         
         it('has correct fillable attributes', function () {
@@ -224,7 +225,7 @@ describe('ZohoBulkHistory Model', function () {
             $retryOperation->last_launch = now();
             
             expect($retryOperation->step)->toBe('initiated');
-            expect($retryOperation->last_launch->isRecent())->toBeTrue();
+            expect($retryOperation->last_launch->diffInMinutes(now()))->toBeLessThan(1);
         });
     });
     

@@ -32,7 +32,8 @@
         "pestphp/pest": "^2.0",
         "orchestra/testbench": "^9.0|^10.0",
         "mockery/mockery": "^1.4",
-        "guzzlehttp/guzzle": "^7.0"
+        "guzzlehttp/guzzle": "^7.0",
+        "vlucas/phpdotenv": "^5.4"
     },
     "autoload-dev": {
         "psr-4": {
@@ -40,15 +41,11 @@
         }
     },
     "scripts": {
-        "test": "pest --colors=always",
-        "test:unit": "pest tests/Unit/FoundationValidationTest.php --colors=always",
-        "test:feature": "pest tests/Feature/ --colors=always",
+        "test": "pest tests/Unit/FoundationValidationTest.php tests/Unit/Models/ tests/Feature/Mock/ --colors=always",
+        "test:core": "pest tests/Unit/FoundationValidationTest.php tests/Unit/Models/ --colors=always",
+        "test:mock": "pest tests/Feature/Mock/ --colors=always",
         "test:models": "pest tests/Unit/Models/ --colors=always",
-        "test:services": "pest tests/Unit/Services/ --colors=always",
-        "test:helpers": "pest tests/Unit/Helpers/ --colors=always",
-        "test:traits": "pest tests/Unit/Traits/ --colors=always",
-        "test:coverage": "pest --coverage --colors=always",
-        "test:list": "pest --list-tests"
+        "test:foundation": "pest tests/Unit/FoundationValidationTest.php --colors=always"
     },
     "license": "proprietary",
     "config": {

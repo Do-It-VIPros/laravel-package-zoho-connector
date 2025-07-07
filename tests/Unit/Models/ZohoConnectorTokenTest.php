@@ -31,7 +31,8 @@ describe('ZohoConnectorToken Model', function () {
             
             $model = new ZohoConnectorToken();
             
-            expect($model->getTable())->toBeNull();
+            // Eloquent utilise un fallback automatique basé sur le nom de classe
+            expect($model->getTable())->toBe('zoho_connector_tokens');
         });
         
         it('has correct fillable attributes', function () {
@@ -123,7 +124,8 @@ describe('ZohoConnectorToken Model', function () {
             
             $this->model->token_peremption_at = $futureTime;
             
-            $remaining = $this->model->token_peremption_at->diffInMinutes(now());
+            // Utiliser diffInMinutes avec absolute pour éviter les valeurs négatives
+            $remaining = abs($this->model->token_peremption_at->diffInMinutes(now()));
             
             expect($remaining)->toBeGreaterThan(25);
             expect($remaining)->toBeLessThan(35);

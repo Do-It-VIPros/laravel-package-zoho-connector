@@ -5,10 +5,7 @@ use Agencedoit\ZohoConnector\Tests\Helpers\ZohoApiMockingHelper;
 use Agencedoit\ZohoConnector\Tests\Helpers\SharedTestHelper;
 
 // Configuration de base pour tous les tests
-uses(TestCase::class)->in('Feature', 'Integration');
-
-// Initialisation des helpers globaux (skip for Unit tests)
-// ZohoApiMockingHelper::initialize();
+// Les tests Mock ont leur propre configuration dans tests/Feature/Mock/Pest.php
 
 /**
  * Fonctions globales pour la création de données de test

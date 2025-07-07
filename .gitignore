@@ -1,3 +1,21 @@
 /vendor
 composer.lock
 /tasks/*
+
+# Environment files with real credentials
+.env
+.env.local
+
+# PHPUnit cache
+.phpunit.result.cache
+.phpunit.cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
