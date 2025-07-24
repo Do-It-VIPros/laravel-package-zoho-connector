@@ -1,8 +1,8 @@
 {
     "name": "agencedoit/zohoconnector",
-    "version": "1.3.8",
     "type": "library",
     "description": "Zoho Creator API connector for Laravel",
+    "keywords": ["laravel", "zoho", "creator", "api", "connector", "oauth2", "tested"],
     "autoload": {
         "psr-4": {
             "Agencedoit\\ZohoConnector\\": "src/"
@@ -24,6 +24,33 @@
             ]
         }
     },
-    "require": {},
-    "license": "proprietary"
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.0",
+        "orchestra/testbench": "^9.0|^10.0",
+        "mockery/mockery": "^1.4",
+        "guzzlehttp/guzzle": "^7.0",
+        "vlucas/phpdotenv": "^5.4"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Agencedoit\\ZohoConnector\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest tests/Unit/FoundationValidationTest.php tests/Unit/Models/ tests/Feature/Mock/ --colors=always",
+        "test:core": "pest tests/Unit/FoundationValidationTest.php tests/Unit/Models/ --colors=always",
+        "test:mock": "pest tests/Feature/Mock/ --colors=always",
+        "test:models": "pest tests/Unit/Models/ --colors=always",
+        "test:foundation": "pest tests/Unit/FoundationValidationTest.php --colors=always"
+    },
+    "license": "proprietary",
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

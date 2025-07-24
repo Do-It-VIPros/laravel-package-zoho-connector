@@ -1,0 +1,64 @@
+{
+  "_fixture_meta": {
+    "version": "1.0",
+    "created_at": "2025-01-06T12:00:00Z",
+    "description": "OAuth flow responses for different scenarios",
+    "zoho_api_version": "2.1"
+  },
+  "authorization_request": {
+    "redirect_url": "https://accounts.zoho.eu/oauth/v2/auth?scope=ZohoCreator.report.READ&client_id=1000.test_client_id&response_type=code&access_type=offline&redirect_uri=http://localhost/zoho/request-code-response"
+  },
+  "token_request_success": {
+    "access_token": "1000.test_access_token.abc123def456",
+    "refresh_token": "1000.test_refresh_token.ghi789jkl012",
+    "expires_in": 3600,
+    "api_domain": "https://www.zohoapis.eu",
+    "token_type": "Bearer",
+    "scope": "ZohoCreator.report.READ"
+  },
+  "token_refresh_success": {
+    "access_token": "1000.new_access_token.mno345pqr678",
+    "expires_in": 3600,
+    "api_domain": "https://www.zohoapis.eu",
+    "token_type": "Bearer"
+  },
+  "token_request_error": {
+    "error": "invalid_grant",
+    "error_description": "Invalid authorization code"
+  },
+  "token_refresh_error": {
+    "error": "invalid_grant",
+    "error_description": "The refresh token is invalid or has expired"
+  },
+  "scope_variations": {
+    "read_only": {
+      "scope": "ZohoCreator.report.READ",
+      "access_token": "1000.readonly_token.abc123"
+    },
+    "read_write": {
+      "scope": "ZohoCreator.report.READ,ZohoCreator.report.CREATE,ZohoCreator.report.UPDATE",
+      "access_token": "1000.readwrite_token.def456"
+    },
+    "full_access": {
+      "scope": "ZohoCreator.report.ALL,ZohoCreator.bulk.CREATE,ZohoCreator.meta.application.READ",
+      "access_token": "1000.fullaccess_token.ghi789"
+    }
+  },
+  "domain_specific": {
+    "eu": {
+      "api_domain": "https://www.zohoapis.eu",
+      "accounts_domain": "https://accounts.zoho.eu",
+      "access_token": "1000.eu_token.abc123"
+    },
+    "com": {
+      "api_domain": "https://www.zohoapis.com",
+      "accounts_domain": "https://accounts.zoho.com", 
+      "access_token": "1000.com_token.def456"
+    },
+    "in": {
+      "api_domain": "https://www.zohoapis.in",
+      "accounts_domain": "https://accounts.zoho.in",
+      "access_token": "1000.in_token.ghi789"
+    }
+  }
+}
