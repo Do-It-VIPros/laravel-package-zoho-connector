@@ -286,7 +286,7 @@ class ZohoCreatorService extends ZohoTokenManagement
 
                 $response = Http::withHeaders(array_merge($this->getHeaders(), [
                     'Content-type' => 'application/json'
-                ]))->patch($full_url, $json_body);
+                ]))->post($full_url . '?action=update', $json_body);
 
                 $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
 
