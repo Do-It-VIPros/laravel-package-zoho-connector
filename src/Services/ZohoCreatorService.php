@@ -253,47 +253,80 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function update(string $report, int|string $id, array $attributes, array $additional_fields = []) : array {
-        try {
-            $this->ZohoServiceCheck();
-            //required variables check
-            if (($report === null || $report === "")) {
-                //? Log error if request fails
-                throw new Exception("Missing required report parameter", 503);
-            }
+public function update(string $report, int|string|null $id = null, array $attributes, array $additional_fields = []): array
+{
+    try {
+        $this->ZohoServiceCheck();
 
-            //URL
-            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
-
-            $json_body = ["data" => $attributes];
-            $json_body["result"] = ["fields" => $additional_fields];
-
-            //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->patch(
-                $full_url,
-                $json_body
-            );
-            
-            //CHECK RESPONSE
-            $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
-            
-            //RETURN
-            //return $response->json();
-            //return multiple
-            if(isset($response->json()["result"])) {
-                $return_response = [];
-                foreach($response->json()["result"] as $result) {
-                    $return_response[] = $result["data"];
-                }
-                return $return_response;
-            }
-            return $response->json()["data"];
-        } catch (Exception $e) {
-            $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
-            throw new Exception($log_error, 503);
+        if (empty($report)) {
+            throw new Exception("Missing required report parameter", 503);
         }
+
+        // 🔁 Mode BULK (id === null)
+        if (is_null($id)) {
+            if (!is_array($attributes) || !isset($attributes[0]) || !isset($attributes[0]['ID'])) {
+                throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
+            }
+
+            $criteria = collect($attributes)
+                ->pluck('ID')
+                ->map(fn($id) => 'ID == "' . $id . '"')
+                ->implode(' || ');
+
+            $full_url = $this->data_base_url . "/report/" . $report . "?action=update";
+
+            $json_body = [
+                'criteria' => $criteria,
+                'data'     => $attributes,
+                'result'   => ['fields' => $additional_fields],
+            ];
+
+            $response = Http::withHeaders(array_merge($this->getHeaders(), [
+                'Content-Type' => 'application/json'
+            ]))->post($full_url, $json_body);
+
+            $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
+
+            $responseData = $response->json();
+
+            // ✅ Retour multiple : tableau d’items
+            if (isset($responseData["result"])) {
+                return array_map(fn($r) => $r["data"], $responseData["result"]);
+            }
+
+            return $responseData["data"] ?? $responseData;
+        }
+
+        // 🔁 Sinon, mode unitaire
+        $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
+
+        $json_body = [
+            "data"   => $attributes,
+            "result" => ["fields" => $additional_fields]
+        ];
+
+        $response = Http::withHeaders(array_merge($this->getHeaders(), [
+            'Content-Type' => 'application/json'
+        ]))->patch($full_url, $json_body);
+
+        $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
+
+        $responseData = $response->json();
+
+        // ✅ Retour unitaire : un seul item
+        if (isset($responseData["result"])) {
+            return array_map(fn($r) => $r["data"], $responseData["result"]);
+        }
+
+        return $responseData["data"] ?? $responseData;
+
+    } catch (Exception $e) {
+        $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
+        Log::error($log_error);
+        throw new Exception($log_error, 503);
     }
+}
+
 
     /**
      * 🌐🔐 upload()
