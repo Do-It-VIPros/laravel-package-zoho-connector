@@ -253,7 +253,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function update(string $report, array $attributes, array $additional_fields = []) : array {
+    public function update(string $report, int|string|null $id, array $attributes, array $additional_fields = []) : array {
     try {
         $this->ZohoServiceCheck();
 
@@ -261,10 +261,10 @@ class ZohoCreatorService extends ZohoTokenManagement {
             throw new Exception("Missing required report parameter", 503);
         }
 
-        $isBulk = isset($attributes[0]) && is_array($attributes[0]) && isset($attributes[0]['ID']);
+        // 📦 Mode BULK si $id est null et $attributes contient un tableau d'enregistrements avec ID
+        $isBulk = is_null($id) && isset($attributes[0]) && is_array($attributes[0]) && isset($attributes[0]['ID']);
 
         if ($isBulk) {
-            // 🧩 Mode BULK
             Log::channel('package_model_log')->info("🔄 Mode bulk détecté pour update sur $report");
 
             $full_url = $this->data_base_url . "/report/" . $report;
@@ -284,12 +284,11 @@ class ZohoCreatorService extends ZohoTokenManagement {
                 : $response->json()["data"];
         }
 
-        // ✅ Mode unitaire (champ ID obligatoire)
-        if (!isset($attributes['ID'])) {
+        // ✏️ Mode unitaire
+        if (!isset($id)) {
             throw new Exception("Missing ID for single record update", 503);
         }
 
-        $id = $attributes['ID'];
         Log::channel('package_model_log')->info("✏️ Mode unitaire détecté pour update de l’ID $id sur $report");
 
         $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
