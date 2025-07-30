@@ -266,7 +266,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             $this->ZohoServiceCheck();
 
             if (empty($report)) {
-                throw new \Exception("Missing required report parameter", 503);
+                throw new Exception("Missing required report parameter", 503);
             }
 
             // 🔀 Mode BULK si $id est null et $attributes est une liste de records
@@ -274,7 +274,7 @@ class ZohoCreatorService extends ZohoTokenManagement
                 // Vérification de la présence d’un champ ID dans chaque record
                 foreach ($attributes as $record) {
                     if (!isset($record['ID'])) {
-                        throw new \Exception("Each record must contain an 'ID' field in bulk update mode", 503);
+                        throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
                     }
                 }
 
@@ -329,6 +329,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             throw new Exception($log_error, 503);
         }
     }
+
 
 
     /**
