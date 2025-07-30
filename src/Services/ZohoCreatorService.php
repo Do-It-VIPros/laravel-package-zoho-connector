@@ -260,75 +260,75 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function update(string $report, int|string|null $id = null, array $attributes, array $additional_fields = []): array
-    {
-        try {
-            $this->ZohoServiceCheck();
+  public function update(string $report, int|string|null $id = null, array $attributes, array $additional_fields = []): array
+{
+    try {
+        $this->ZohoServiceCheck();
 
-            if (empty($report)) {
-                throw new Exception("Missing required report parameter", 503);
+        if (empty($report)) {
+            throw new Exception("Missing required report parameter", 503);
+        }
+
+        // 🔁 Mode BULK : $id = null + $attributes = array de records avec champ ID
+        if (is_null($id) && isset($attributes[0]) && is_array($attributes[0])) {
+            foreach ($attributes as $record) {
+                if (!isset($record['ID'])) {
+                    throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
+                }
             }
 
-            // 🔀 Mode BULK si $id est null et $attributes est une liste de records
-            if ($id === null && isset($attributes[0]) && is_array($attributes[0])) {
-                // Vérification de la présence d’un champ ID dans chaque record
-                foreach ($attributes as $record) {
-                    if (!isset($record['ID'])) {
-                        throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
-                    }
-                }
+            $full_url = $this->data_base_url . "/report/" . $report . "?action=update";
 
-                // URL pour le mode bulk
-                $full_url = $this->data_base_url . "/report/" . $report;
-
-                $json_body = ["data" => $attributes];
-                $json_body["result"] = ["fields" => $additional_fields];
-
-                $response = Http::withHeaders(array_merge($this->getHeaders(), [
-                    'Content-type' => 'application/json'
-                ]))->post($full_url . '?action=update', $json_body);
-
-                $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
-
-                // ✅ Format de retour pour bulk
-                if (isset($response->json()["result"])) {
-                    $return_response = [];
-                    foreach ($response->json()["result"] as $result) {
-                        $return_response[] = $result["data"];
-                    }
-                    return $return_response;
-                }
-                return $response->json()["data"];
-            }
-
-            // 🔁 Sinon, mode single record classique
-            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
-
-            $json_body = ["data" => $attributes];
-            $json_body["result"] = ["fields" => $additional_fields];
+            $json_body = [
+                "data" => $attributes,
+                "result" => ["fields" => $additional_fields]
+            ];
 
             $response = Http::withHeaders(array_merge($this->getHeaders(), [
-                'Content-type' => 'application/json'
-            ]))->patch($full_url, $json_body);
+                'Content-Type' => 'application/json'
+            ]))->post($full_url, $json_body);
 
             $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
 
-            // ✅ Format de retour
-            if (isset($response->json()["result"])) {
-                $return_response = [];
-                foreach ($response->json()["result"] as $result) {
-                    $return_response[] = $result["data"];
-                }
-                return $return_response;
+            $responseData = $response->json();
+
+            // ✅ Retour en bulk : tableau d’items
+            if (isset($responseData["result"])) {
+                return array_map(fn($r) => $r["data"], $responseData["result"]);
             }
 
-            return $response->json()["data"];
-        } catch (Exception $e) {
-            $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
-            throw new Exception($log_error, 503);
+            return $responseData["data"] ?? $responseData;
         }
+
+        // 🔁 Sinon, mode unitaire
+        $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
+
+        $json_body = [
+            "data" => $attributes,
+            "result" => ["fields" => $additional_fields]
+        ];
+
+        $response = Http::withHeaders(array_merge($this->getHeaders(), [
+            'Content-Type' => 'application/json'
+        ]))->patch($full_url, $json_body);
+
+        $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
+
+        $responseData = $response->json();
+
+        // ✅ Retour unitaire : un seul item
+        if (isset($responseData["result"])) {
+            return array_map(fn($r) => $r["data"], $responseData["result"]);
+        }
+
+        return $responseData["data"] ?? $responseData;
+    } catch (Exception $e) {
+        $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
+        Log::error($log_error);
+        throw new Exception($log_error, 503);
     }
+}
+
 
 
 
