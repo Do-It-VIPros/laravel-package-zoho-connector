@@ -253,8 +253,7 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-public function update(string $report, int|string|null $id = null, array $attributes, array $additional_fields = []): array
-{
+    public function update(string $report, array $attributes, array $additional_fields = []) : array {
     try {
         $this->ZohoServiceCheck();
 
@@ -262,63 +261,52 @@ public function update(string $report, int|string|null $id = null, array $attrib
             throw new Exception("Missing required report parameter", 503);
         }
 
-        // 🔁 Mode BULK (id === null)
-        if (is_null($id)) {
-            if (!is_array($attributes) || !isset($attributes[0]) || !isset($attributes[0]['ID'])) {
-                throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
-            }
+        $isBulk = isset($attributes[0]) && is_array($attributes[0]) && isset($attributes[0]['ID']);
 
-            $criteria = collect($attributes)
-                ->pluck('ID')
-                ->map(fn($id) => 'ID == "' . $id . '"')
-                ->implode(' || ');
+        if ($isBulk) {
+            // 🧩 Mode BULK
+            Log::channel('package_model_log')->info("🔄 Mode bulk détecté pour update sur $report");
 
-            $full_url = $this->data_base_url . "/report/" . $report . "?action=update";
+            $full_url = $this->data_base_url . "/report/" . $report;
 
             $json_body = [
-                'criteria' => $criteria,
-                'data'     => $attributes,
-                'result'   => ['fields' => $additional_fields],
+                "data" => $attributes,
+                "result" => ["fields" => $additional_fields]
             ];
 
-            $response = Http::withHeaders(array_merge($this->getHeaders(), [
-                'Content-Type' => 'application/json'
-            ]))->post($full_url, $json_body);
+            $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-Type' => 'application/json']))
+                ->patch($full_url, $json_body);
 
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
+            $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE_BULK");
 
-            $responseData = $response->json();
-
-            // ✅ Retour multiple : tableau d’items
-            if (isset($responseData["result"])) {
-                return array_map(fn($r) => $r["data"], $responseData["result"]);
-            }
-
-            return $responseData["data"] ?? $responseData;
+            return isset($response->json()["result"])
+                ? array_map(fn($r) => $r["data"], $response->json()["result"])
+                : $response->json()["data"];
         }
 
-        // 🔁 Sinon, mode unitaire
+        // ✅ Mode unitaire (champ ID obligatoire)
+        if (!isset($attributes['ID'])) {
+            throw new Exception("Missing ID for single record update", 503);
+        }
+
+        $id = $attributes['ID'];
+        Log::channel('package_model_log')->info("✏️ Mode unitaire détecté pour update de l’ID $id sur $report");
+
         $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
 
         $json_body = [
-            "data"   => $attributes,
+            "data" => $attributes,
             "result" => ["fields" => $additional_fields]
         ];
 
-        $response = Http::withHeaders(array_merge($this->getHeaders(), [
-            'Content-Type' => 'application/json'
-        ]))->patch($full_url, $json_body);
+        $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-Type' => 'application/json']))
+            ->patch($full_url, $json_body);
 
         $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
 
-        $responseData = $response->json();
-
-        // ✅ Retour unitaire : un seul item
-        if (isset($responseData["result"])) {
-            return array_map(fn($r) => $r["data"], $responseData["result"]);
-        }
-
-        return $responseData["data"] ?? $responseData;
+        return isset($response->json()["result"])
+            ? array_map(fn($r) => $r["data"], $response->json()["result"])
+            : $response->json()["data"];
 
     } catch (Exception $e) {
         $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
@@ -327,7 +315,7 @@ public function update(string $report, int|string|null $id = null, array $attrib
     }
 }
 
-
+    
     /**
      * 🌐🔐 upload()
      *
