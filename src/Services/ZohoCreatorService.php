@@ -271,34 +271,26 @@ class ZohoCreatorService extends ZohoTokenManagement
 
         // 🔁 Mode BULK : $id = null + $attributes = array de records avec champ ID
         if (is_null($id) && isset($attributes[0]) && is_array($attributes[0])) {
-            foreach ($attributes as $record) {
-                if (!isset($record['ID'])) {
-                    throw new Exception("Each record must contain an 'ID' field in bulk update mode", 503);
-                }
-            }
-
-            $full_url = $this->data_base_url . "/report/" . $report . "?action=update";
-
-            $json_body = [
-                "data" => $attributes,
-                "result" => ["fields" => $additional_fields]
-            ];
-
-            $response = Http::withHeaders(array_merge($this->getHeaders(), [
-                'Content-Type' => 'application/json'
-            ]))->post($full_url, $json_body);
-
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
-
-            $responseData = $response->json();
-
-            // ✅ Retour en bulk : tableau d’items
-            if (isset($responseData["result"])) {
-                return array_map(fn($r) => $r["data"], $responseData["result"]);
-            }
-
-            return $responseData["data"] ?? $responseData;
+    foreach ($attributes as $record) {
+        if (!isset($record['ID'])) {
+            throw new Exception("Chaque record doit contenir un champ 'ID' pour le mode bulk", 503);
         }
+    }
+
+    $full_url = $this->data_base_url . "/report/" . $report;
+    $json_body = [
+        "criteria" => "ID!=null",
+        "data"     => $attributes,
+        "result"   => ["fields" => $additional_fields],
+    ];
+    $response = Http::withHeaders(...)->patch($full_url, $json_body);
+    $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
+    $resp = $response->json();
+    return isset($resp["result"])
+        ? array_map(fn($r)=> $r["data"], $resp["result"])
+        : ($resp["data"] ?? $resp);
+}
+
 
         // 🔁 Sinon, mode unitaire
         $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
