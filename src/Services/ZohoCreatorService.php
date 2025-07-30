@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\File;
 use \Exception;
 use ZipArchive;
 
-class ZohoCreatorService extends ZohoTokenManagement
-{
+class ZohoCreatorService extends ZohoTokenManagement {
 
     use ZohoServiceChecker;
 
@@ -45,8 +44,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function get(string $report, string|array $criteria = "", string &$cursor = ""): array|string
-    {
+    public function get(string $report, string|array $criteria = "", string &$cursor = "") : array|string {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -63,15 +61,13 @@ class ZohoCreatorService extends ZohoTokenManagement
             $parmeters['max_records'] = 1000;
             $parmeters['field_config'] = "all";
             $criteria_as_string = (gettype($criteria) == "array" ? $this->criteriaFormater($criteria) : $criteria);
-            if ($criteria_as_string != null && $criteria_as_string != "") {
+            if($criteria_as_string != null && $criteria_as_string != "") {
                 $parmeters['criteria'] = $criteria_as_string;
             }
 
             //HEADERS
             $headers = $this->getHeaders();
-            if ($cursor != "") {
-                $headers["record_cursor"] = $cursor;
-            }
+            if($cursor != "") {$headers["record_cursor"] = $cursor;}
 
             //REQUEST
             $response = Http::withHeaders($headers)->timeout(config('zohoconnector.request_timeout'))->get(
@@ -80,10 +76,10 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.READ");
-
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.READ");
+            
             // set the cursor if exist or reset
-            $cursor = (array_key_exists("record_cursor", $response->headers()) ? $response->headers()["record_cursor"][0] : "");
+            $cursor = (array_key_exists("record_cursor",$response->headers())? $response->headers()["record_cursor"][0] : "");
 
             return $response->json()["data"];
         } catch (Exception $e) {
@@ -92,7 +88,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             throw new Exception($log_error, 503);
         }
     }
-
+    
     /**
      * 🌐🔐 getAll()
      *
@@ -111,17 +107,16 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getAll(string $report, string|array $criteria = "", int $delay = 2): array
-    {
+    public function getAll(string $report, string|array $criteria = "", int $delay = 2) : array {
         try {
             $this->ZohoServiceCheck();
-
+           
             $cursor = "";
 
             $found_datas = $this->get($report, $criteria, $cursor);
-            while ($cursor != "") {
+            while($cursor != "") {
                 sleep($delay);
-                $found_datas = array_merge($found_datas, $this->get($report, $criteria, $cursor));
+                $found_datas = array_merge($found_datas,$this->get($report, $criteria, $cursor));
             }
 
             return $found_datas;
@@ -147,8 +142,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getByID(string $report, string $object_id): array
-    {
+    public function getByID(string $report, string $object_id) : array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -165,8 +159,8 @@ class ZohoCreatorService extends ZohoTokenManagement
                     'field_config' => 'all',
                 ]
             );
-
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.READ");
+        
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.READ");
 
             return $response->json();
         } catch (Exception $e) {
@@ -193,8 +187,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function create(string $form, array $attributes, array $additional_fields = []): array
-    {
+    public function create(string $form, array $attributes, array $additional_fields = []) : array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -216,20 +209,20 @@ class ZohoCreatorService extends ZohoTokenManagement
             ];
             return $log;*/
             //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-type' => 'application/json']))->post(
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
                 $full_url,
                 $json_body
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.form.CREATE");
-
+            $this->ZohoResponseCheck($response,"ZohoCreator.form.CREATE");
+            
             //RETURN
             //return $response->json();
             //return multiple
-            if (isset($response->json()["result"])) {
+            if(isset($response->json()["result"])) {
                 $return_response = [];
-                foreach ($response->json()["result"] as $result) {
+                foreach($response->json()["result"] as $result) {
                     $return_response[] = $result["data"];
                 }
                 return $return_response;
@@ -260,69 +253,47 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-  public function update(string $report, int|string|null $id = null, array $attributes, array $additional_fields = []): array
-{
-    try {
-        $this->ZohoServiceCheck();
+    public function update(string $report, int|string $id, array $attributes, array $additional_fields = []) : array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($report === null || $report === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required report parameter", 503);
+            }
 
-        if (empty($report)) {
-            throw new Exception("Missing required report parameter", 503);
-        }
+            //URL
+            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
 
-        // 🔁 Mode BULK : $id = null + $attributes = array de records avec champ ID
-        if (is_null($id) && isset($attributes[0]) && is_array($attributes[0])) {
-    foreach ($attributes as $record) {
-        if (!isset($record['ID'])) {
-            throw new Exception("Chaque record doit contenir un champ 'ID' pour le mode bulk", 503);
+            $json_body = ["data" => $attributes];
+            $json_body["result"] = ["fields" => $additional_fields];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->patch(
+                $full_url,
+                $json_body
+            );
+            
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
+            
+            //RETURN
+            //return $response->json();
+            //return multiple
+            if(isset($response->json()["result"])) {
+                $return_response = [];
+                foreach($response->json()["result"] as $result) {
+                    $return_response[] = $result["data"];
+                }
+                return $return_response;
+            }
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
+            Log::error($log_error);
+            throw new Exception($log_error, 503);
         }
     }
-
-    $full_url = $this->data_base_url . "/report/" . $report;
-    $json_body = [
-        "criteria" => "ID!=null",
-        "data"     => $attributes,
-        "result"   => ["fields" => $additional_fields],
-    ];
-    $response = Http::withHeaders(...)->patch($full_url, $json_body);
-    $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
-    $resp = $response->json();
-    return isset($resp["result"])
-        ? array_map(fn($r)=> $r["data"], $resp["result"])
-        : ($resp["data"] ?? $resp);
-}
-
-
-        // 🔁 Sinon, mode unitaire
-        $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
-
-        $json_body = [
-            "data" => $attributes,
-            "result" => ["fields" => $additional_fields]
-        ];
-
-        $response = Http::withHeaders(array_merge($this->getHeaders(), [
-            'Content-Type' => 'application/json'
-        ]))->patch($full_url, $json_body);
-
-        $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
-
-        $responseData = $response->json();
-
-        // ✅ Retour unitaire : un seul item
-        if (isset($responseData["result"])) {
-            return array_map(fn($r) => $r["data"], $responseData["result"]);
-        }
-
-        return $responseData["data"] ?? $responseData;
-    } catch (Exception $e) {
-        $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-        Log::error($log_error);
-        throw new Exception($log_error, 503);
-    }
-}
-
-
-
 
     /**
      * 🌐🔐 upload()
@@ -341,31 +312,29 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function upload(string $report, int|string $id, string $field, string $file): string|array
-    {
+    public function upload(string $report, int|string $id, string $field, string $file) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
             if (($report === null || $report === "")
                 || ($id === null || $id === "")
                 || ($field === null || $field === "")
-                || ($file === null || $file === "")
-            ) {
+                || ($file === null || $file === "")) {
                 //? Log error if request fails
                 throw new Exception("Missing required parameter", 503);
             }
 
             //if it's an URL, we store it in a tmp file
-            if (filter_var($file, FILTER_VALIDATE_URL) !== false) {
+            if(filter_var($file, FILTER_VALIDATE_URL) !== false) {
                 $headers = get_headers($file, 1);
                 if (!$headers || strpos($headers[0], '200') === false) {
                     throw new Exception("$file : File not found", 503);
                 }
                 $tmp_file = tempnam(sys_get_temp_dir(), pathinfo($file)['filename'] . '_') . "." . pathinfo(parse_url($file, PHP_URL_PATH), PATHINFO_EXTENSION);
-                file_put_contents($tmp_file, file_get_contents($file));
+                file_put_contents($tmp_file , file_get_contents($file));
                 $file = $tmp_file;
             }
-
+            
             //FILE CHECK
             if (!file_exists($file)) {
                 throw new Exception($file  . " : File not found", 503);
@@ -377,30 +346,24 @@ class ZohoCreatorService extends ZohoTokenManagement
             if (!$file_as_data) {
                 throw new Exception($file  . " : fopen failed", 503);
             }
-
+            
             //URL
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $id . "/" . $field . "/upload";
 
             //REQUEST
             $response = Http::withHeaders($this->getHeaders())->attach(
-                'file',
-                $file_as_data,
-                basename($file)
+                'file',  $file_as_data, basename($file)
             )->post(
                 $full_url
             );
             //DELETE THE TMP FILE
-            if (isset($tmp_file)) {
-                unlink($tmp_file);
-            }
+            if(isset($tmp_file)){unlink($tmp_file);}
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.CREATE");
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.CREATE");
             //RETURN
             return $response->json();
         } catch (Exception $e) {
-            if (!empty($tmp_file) && file_exists($tmp_file)) {
-                unlink($tmp_file);
-            }
+            if (!empty($tmp_file) && file_exists($tmp_file)) {unlink($tmp_file);}
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
             Log::error($log_error);
             throw new Exception($log_error, 503);
@@ -426,12 +389,9 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function customFunctionGet(string $url, array $parameters = [], string $public_key = "")
-    {
+    public function customFunctionGet(string $url, array $parameters = [], string $public_key = "") {
         try {
-            if ($public_key == "") {
-                $this->ZohoServiceCheck();
-            }
+            if($public_key == "") {$this->ZohoServiceCheck();}
 
             //required variables check
             if (($url === null || $url === "")) {
@@ -444,7 +404,7 @@ class ZohoCreatorService extends ZohoTokenManagement
 
             //PARAMETERS
             $headers = array();
-            ($public_key != "") ? $parameters["publickey"] = $public_key : $headers = $this->getHeaders();
+            ($public_key != "")? $parameters["publickey"] = $public_key : $headers = $this->getHeaders();
 
             //REQUEST
             $response = Http::withHeaders($headers)->get(
@@ -482,8 +442,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function customFunctionPost(string $url, array $body = [], string $public_key = "")
-    {
+    public function customFunctionPost(string $url, array $body = [], string $public_key = "") {
         try {
             $this->ZohoServiceCheck();
 
@@ -494,10 +453,10 @@ class ZohoCreatorService extends ZohoTokenManagement
             }
 
             //URL
-            $full_url = $this->custom_base_url . $url . (($public_key != "") ? ("?publickey=" . $public_key) : "");
+            $full_url = $this->custom_base_url . $url . (($public_key != "") ? ("?publickey=" . $public_key) : "" );
 
             //REQUEST
-            $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-type' => 'application/json']))->post(
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
                 $full_url,
                 $body
             );
@@ -514,7 +473,7 @@ class ZohoCreatorService extends ZohoTokenManagement
 
     ///////// BULK FUNCTIONS //////////
 
-
+    
     /**
      * 🌐🔐 createBulk()
      *
@@ -530,8 +489,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function createBulk(string $report, array|string $criteria = ""): string|array
-    {
+    public function createBulk(string $report, array|string $criteria = "") : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -545,18 +503,18 @@ class ZohoCreatorService extends ZohoTokenManagement
             $criteria_as_string = (gettype($criteria) == "array" ? $this->criteriaFormater($criteria) : $criteria);
 
             $query_content = ["max_records" => 200000];
-            if ($criteria_as_string != null && $criteria_as_string != "") {
+            if($criteria_as_string != null && $criteria_as_string != "") {
                 $query_content['criteria'] = $criteria_as_string;
             }
 
             $json_body = ["query" => $query_content];
 
-            $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-type' => 'application/json']))->post(
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->post(
                 $full_url,
                 $json_body
             );
 
-            $this->ZohoResponseCheck($response, "ZohoCreator.bulk.CREATE");
+            $this->ZohoResponseCheck($response,"ZohoCreator.bulk.CREATE");
 
             return $response->json()["details"]["id"];
         } catch (Exception $e) {
@@ -581,8 +539,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function readBulk(string $report, string $id): string|array
-    {
+    public function readBulk(string $report, string $id) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -592,12 +549,12 @@ class ZohoCreatorService extends ZohoTokenManagement
             }
 
             $full_url = $this->bulk_base_url  . $report . "/read/" . $id;
-
+            
             $response = Http::withHeaders($this->getHeaders())->get(
                 $full_url,
             );
 
-            $this->ZohoResponseCheck($response, "ZohoCreator.bulk.READ");
+            $this->ZohoResponseCheck($response,"ZohoCreator.bulk.READ");
 
             return ($response->json());
         } catch (Exception $e) {
@@ -622,11 +579,10 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function bulkIsReady(string $report, string $id): bool
-    {
+    public function bulkIsReady(string $report, string $id) : bool {
         try {
             $this->ZohoServiceCheck();
-
+            
             $bulk_infos = $this->readBulk($report, $id);
 
             return ($bulk_infos != "" && $bulk_infos["details"]["status"] == "Completed");
@@ -654,8 +610,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function downloadBulk(string $report, string $id): string|array
-    {
+    public function downloadBulk(string $report, string $id) : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -665,7 +620,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             }
 
             $full_url = $this->bulk_base_url  . $report . "/read/" . $id . "/result";
-
+            
             $stored_path = config('zohoconnector.bulk_download_path');
 
             File::makeDirectory($stored_path, 0755, true, true);
@@ -703,8 +658,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function createBulkAuto(string $report, string $call_back_url, string|array $criteria = ""): string|int
-    {
+    public function createBulkAuto(string $report, string $call_back_url, string|array $criteria = "") : string|int {
         try {
             $bulk_id = $this->createBulk($report, $criteria);
             $bulk_history = ZohoBulkHistory::create([
@@ -737,8 +691,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function readBulkAuto(int $bulk_history_id): string|array
-    {
+    public function readBulkAuto(int $bulk_history_id) : string|array {
         try {
             $bulk_history = ZohoBulkHistory::find($bulk_history_id);
             $bulk_infos = $this->readBulk($bulk_history->report, $bulk_history->bulk_id);
@@ -764,8 +717,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function bulkIsReadyAuto(int $bulk_history_id): bool
-    {
+    public function bulkIsReadyAuto(int $bulk_history_id) : bool {
         try {
             $bulk_infos = $this->readBulkAuto($bulk_history_id);
             return ($bulk_infos != "" && $bulk_infos["details"]["status"] == "Completed");
@@ -790,8 +742,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function downloadBulkAuto(int $bulk_history_id): string|array
-    {
+    public function downloadBulkAuto(int $bulk_history_id) : string|array {
         try {
             $bulk_history = ZohoBulkHistory::find($bulk_history_id);
             $bulk_download_path = $this->downloadBulk($bulk_history->report, $bulk_history->bulk_id);
@@ -820,8 +771,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getWithBulk(string $report, string $call_back_url, string|array $criteria = ""): string|array
-    {
+    public function getWithBulk(string $report, string $call_back_url, string|array $criteria = "") : string|array {
         try {
             $this->ZohoServiceCheck();
             //required variables check
@@ -852,8 +802,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getFormsMeta(): array|string
-    {
+    public function getFormsMeta() : array|string {
         try {
             $this->ZohoServiceCheck();
 
@@ -866,7 +815,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.meta.application.READ");
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
 
             return $response->json()["forms"];
         } catch (Exception $e) {
@@ -890,8 +839,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getFieldsMeta(string $form): array|string
-    {
+    public function getFieldsMeta(string $form) : array|string {
         try {
             $this->ZohoServiceCheck();
 
@@ -904,7 +852,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.meta.form.READ");
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.form.READ");
 
             return $response->json()["fields"];
         } catch (Exception $e) {
@@ -926,8 +874,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getReportsMeta(): array|string
-    {
+    public function getReportsMeta() : array|string {
         try {
             $this->ZohoServiceCheck();
 
@@ -940,7 +887,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.meta.application.READ");
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
 
             return $response->json()["reports"];
         } catch (Exception $e) {
@@ -962,8 +909,7 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function getPagesMeta(): array|string
-    {
+    public function getPagesMeta() : array|string {
         try {
             $this->ZohoServiceCheck();
 
@@ -976,7 +922,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.meta.application.READ");
+            $this->ZohoResponseCheck($response,"ZohoCreator.meta.application.READ");
 
             return $response->json()["pages"];
         } catch (Exception $e) {
@@ -1005,10 +951,9 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function extractCsvFromZip(string $zip_location, string $extracted_location, string $report, string $bulk_id): string|array
-    {
+    public function extractCsvFromZip(string $zip_location, string $extracted_location, string $report, string $bulk_id) : string|array {
         try {
-
+            
             $zip = new ZipArchive;
             $zip->open($zip_location);
             $zip->extractTo($extracted_location);
@@ -1035,15 +980,14 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function transformCsvToJson(string $csv_location): string|array
-    {
+    public function transformCsvToJson(string $csv_location) : string|array {
         try {
             $json_location = substr_replace($csv_location, '', -4) . ".json";
             $csv_reader = fopen($csv_location, 'r');
             $csv_headers = fgetcsv($csv_reader); // Get column headers
-            foreach ($csv_headers as &$csv_header) {
-                if (str_contains($csv_header, ".")) {
-                    $csv_header = str_replace(".", "->", $csv_header);
+            foreach($csv_headers as &$csv_header) {
+                if(str_contains($csv_header,".")){
+                    $csv_header = str_replace(".","->",$csv_header);
                 }
             }
             $bulk_results_as_array = array();
@@ -1062,18 +1006,17 @@ class ZohoCreatorService extends ZohoTokenManagement
     }
 
     //WIP See if it's realy useful
-    private function criteriaFormater(array|string $criteria): string
-    {
+    private function criteriaFormater(array|string $criteria) : string {
         try {
-            if (gettype($criteria) != "array") {
+            if(gettype($criteria) != "array") {
                 return $criteria;
             }
             $formated_criterias = "";
-            foreach ($criteria as $field => $filters) {
+            foreach($criteria as $field=>$filters) {
                 //Here is the tricky point
                 $formated_criterias .= $field . $filters['comparaison'] . $filters['value'] . "&&";
             }
-            if ($formated_criterias != "") {
+            if($formated_criterias != "") {
                 $formated_criterias = substr_replace($formated_criterias, '', -2);
             }
             return $formated_criterias;
@@ -1085,8 +1028,7 @@ class ZohoCreatorService extends ZohoTokenManagement
     }
 
     //TEST FUNCTION
-    public function test(): string
-    {
+    public function test() : string {
         return "blob";
     }
 }
