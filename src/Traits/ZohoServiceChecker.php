@@ -32,34 +32,35 @@ trait ZohoServiceChecker
         }
     }
 
-   protected function ZohoResponseCheck(Response $response, string $specific = ""): void
-{
- 
-    try {
-        $json = $response->json();
+    protected function ZohoResponseCheck(Response $response, string $specific = ""): void
+    {
+        Log::info('📨 Réponse complète de Zoho :', $response->json());
 
-        if (!$response->successful() || !isset($json['code']) || $json['code'] != 3000) {
-            // Gestion spécifique code 2945 (scope)
-            if (isset($json['code']) && $json['code'] == 2945) {
-                throw new \Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
+        try {
+            $json = $response->json();
+
+            if (!$response->successful() || !isset($json['code']) || $json['code'] != 3000) {
+                // Gestion spécifique code 2945 (scope)
+                if (isset($json['code']) && $json['code'] == 2945) {
+                    throw new \Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
+                }
+
+                // 🔎 Construction du message d'erreur lisible
+                $message = 'Erreur Zoho : ';
+
+                if (isset($json['error']) && is_array($json['error'])) {
+                    $message .= implode('; ', $json['error']);
+                } elseif (isset($json['message'])) {
+                    $message .= $json['message'];
+                } else {
+                    $message .= json_encode($json);
+                }
+
+                throw new \Exception($message);
             }
-
-            // 🔎 Construction du message d'erreur lisible
-            $message = 'Erreur Zoho : ';
-
-            if (isset($json['error']) && is_array($json['error'])) {
-                $message .= implode('; ', $json['error']);
-            } elseif (isset($json['message'])) {
-                $message .= $json['message'];
-            } else {
-                $message .= json_encode($json);
-            }
-
-            throw new \Exception($message);
+        } catch (Exception $e) {
+            Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            throw new \Exception($e->getMessage(), 503);
         }
-    } catch (Exception $e) {
-        Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-        throw new \Exception($e->getMessage(), 503);
     }
-}
 }
