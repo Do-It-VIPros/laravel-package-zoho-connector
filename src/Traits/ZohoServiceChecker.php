@@ -11,22 +11,23 @@ use \Exception;
 
 trait ZohoServiceChecker
 {
-    protected function ZohoServiceCheck() : void
+    protected function ZohoServiceCheck(): void
     {
         // En mode test, ignorer les vérifications de service
         if (config('zohoconnector.test_mode', false)) {
             return;
         }
-        
+
         if (!ZohoCreatorApi::isReady()) {
             Log::error('ZohoCreatorService is not ready. Please init it.');
             Log::error('See ' . env("APP_URL") . '/zoho/test for more informations.');
             throw new Exception('ZohoCreatorService is not ready. Please init it.');
-        }
-        else if (config('zohoconnector.environment') != ""
-                    && config('zohoconnector.environment') != "development"
-                    && config('zohoconnector.environment') != "stage"
-                    && config('zohoconnector.environment') != "production") {
+        } else if (
+            config('zohoconnector.environment') != ""
+            && config('zohoconnector.environment') != "development"
+            && config('zohoconnector.environment') != "stage"
+            && config('zohoconnector.environment') != "production"
+        ) {
             Log::error('zohoconnector.environment is not set correctly. (' . config('zohoconnector.environment') . '). Choices are : empty,development, stage or production.');
             throw new Exception('ZohoCreatorService is not ready. zohoconnector.environment is not correct.');
         }
@@ -34,8 +35,13 @@ trait ZohoServiceChecker
 
     protected function ZohoResponseCheck(Response $response, string $specific = ""): void
     {
-        Log::info('📨 Réponse complète de Zoho :', (array) $response->json());
+        $responseJson = $response->json();
 
+        if (is_array($responseJson)) {
+            Log::info('📨 Réponse complète de Zoho :', $responseJson);
+        } else {
+            Log::info('📨 Réponse non-JSON ou invalide de Zoho : ' . (string) $response->body());
+        }
 
         try {
             $json = $response->json();
