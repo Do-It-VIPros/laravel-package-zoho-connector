@@ -49,7 +49,7 @@ trait ZohoServiceChecker
             if (!$response->successful() || !isset($json['code']) || $json['code'] != 3000) {
                 // Gestion spécifique code 2945 (scope)
                 if (isset($json['code']) && $json['code'] == 2945) {
-                    throw new \Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
+                    throw new Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
                 }
 
                 // 🔎 Construction du message d'erreur lisible
@@ -59,15 +59,17 @@ trait ZohoServiceChecker
                     $message .= implode('; ', $json['error']);
                 } elseif (isset($json['message'])) {
                     $message .= $json['message'];
-                } else {
+                } elseif (!empty($json)) {
                     $message .= json_encode($json);
+                } else {
+                    $message .= 'Réponse vide ou non décodable (code HTTP: ' . $response->status() . ')';
                 }
 
-                throw new \Exception($message);
+                throw new Exception($message);
             }
         } catch (Exception $e) {
             Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            throw new \Exception($e->getMessage(), 503);
+            throw new Exception($e->getMessage(), 503);
         }
     }
 }
