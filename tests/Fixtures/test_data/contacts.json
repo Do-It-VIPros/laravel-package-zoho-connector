@@ -1,0 +1,93 @@
+{
+  "_fixture_meta": {
+    "version": "1.0",
+    "description": "Test contact data compatible with VIPros Elastic Models",
+    "entity_type": "contact"
+  },
+  "test_contact_1": {
+    "ID": "61757000058385550",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@testcompany.com",
+    "mobile": "+33123456789",
+    "company": {
+      "ID": "61757000058385531",
+      "denomination": "VIPros Test Company Ltd",
+      "zc_display_value": "VIPros Test Company Ltd"
+    },
+    "position": "Manager",
+    "is_main_contact": true,
+    "is_test": false,
+    "Added_Time": "2025-01-01T00:00:00Z",
+    "Modified_Time": "2025-01-01T00:00:00Z"
+  },
+  "test_contact_2": {
+    "ID": "61757000058385551",
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "email": "jane.smith@anothertest.com",
+    "mobile": "+33987654321",
+    "company": {
+      "ID": "61757000058385532",
+      "denomination": "Another Test SARL",
+      "zc_display_value": "Another Test SARL"
+    },
+    "position": "Director",
+    "is_main_contact": true,
+    "is_test": false,
+    "Added_Time": "2025-01-02T00:00:00Z",
+    "Modified_Time": "2025-01-02T00:00:00Z"
+  },
+  "test_contact_secondary": {
+    "ID": "61757000058385552",
+    "first_name": "Bob",
+    "last_name": "Johnson",
+    "email": "bob.johnson@testcompany.com",
+    "mobile": "+33555666777",
+    "company": {
+      "ID": "61757000058385531",
+      "denomination": "VIPros Test Company Ltd",
+      "zc_display_value": "VIPros Test Company Ltd"
+    },
+    "position": "Assistant",
+    "is_main_contact": false,
+    "is_test": false,
+    "Added_Time": "2025-01-01T00:00:00Z",
+    "Modified_Time": "2025-01-01T00:00:00Z"
+  },
+  "batch_test_data": [
+    {
+      "ID": "61757000058385560",
+      "first_name": "Alice",
+      "last_name": "Brown",
+      "email": "alice.brown@batch1.com",
+      "company": {
+        "ID": "61757000058385540",
+        "denomination": "Batch Company 1",
+        "zc_display_value": "Batch Company 1"
+      }
+    },
+    {
+      "ID": "61757000058385561",
+      "first_name": "Charlie",
+      "last_name": "Davis",
+      "email": "charlie.davis@batch2.com",
+      "company": {
+        "ID": "61757000058385541",
+        "denomination": "Batch Company 2",
+        "zc_display_value": "Batch Company 2"
+      }
+    },
+    {
+      "ID": "61757000058385562",
+      "first_name": "Diana",
+      "last_name": "Wilson",
+      "email": "diana.wilson@batch3.com",
+      "company": {
+        "ID": "61757000058385542",
+        "denomination": "Batch Company 3",
+        "zc_display_value": "Batch Company 3"
+      }
+    }
+  ]
+}
