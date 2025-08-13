@@ -34,35 +34,50 @@ trait ZohoServiceChecker
     }
 
     protected function ZohoResponseCheck(Response $response, string $specific = ""): void
-    {
-       
-        try {
-            $json = $response->json();
+{
+    try {
+        $json = $response->json();
 
-            if (!$response->successful() || !isset($json['code']) || $json['code'] != 3000) {
-                // Gestion spécifique code 2945 (scope)
-                if (isset($json['code']) && $json['code'] == 2945) {
-                    throw new Exception("Please add " . $specific . " in ZOHO_SCOPE env variable.");
-                }
-
-                // 🔎 Construction du message d'erreur lisible
-                $message = 'Erreur Zoho : ';
-
-                if (isset($json['error']) && is_array($json['error'])) {
-                    $message .= implode('; ', $json['error']);
-                } elseif (isset($json['message'])) {
-                    $message .= $json['message'];
-                } elseif (!empty($json)) {
-                    $message .= json_encode($json);
-                } else {
-                    $message .= 'Réponse vide ou non décodable (code HTTP: ' . $response->status() . ')';
-                }
-
-                throw new Exception($message);
+        if (!$response->successful() || !isset($json['code']) || (int)$json['code'] !== 3000) {
+            // Gestion spécifique code 2945 (scope)
+            if (isset($json['code']) && (int)$json['code'] === 2945) {
+                throw new Exception("Please add {$specific} in ZOHO_SCOPE env variable.");
             }
-        } catch (Exception $e) {
-            Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
-            throw new Exception($e->getMessage(), 503);
+
+            // 🔎 Construction du message d'erreur lisible et SANS implode sur des sous-tableaux
+            $message = 'Erreur Zoho : ';
+
+            if (array_key_exists('error', (array)$json)) {
+                $message .= $this->stringifyZohoPart($json['error']);
+            } elseif (array_key_exists('message', (array)$json)) {
+                $message .= $this->stringifyZohoPart($json['message']);
+            } elseif (!empty($json)) {
+                $message .= json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            } else {
+                $message .= 'Réponse vide ou non décodable (code HTTP: ' . $response->status() . ')';
+            }
+
+            throw new Exception($message);
         }
+    } catch (Exception $e) {
+        Log::error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+        throw new Exception($e->getMessage(), 503);
     }
+}
+
+/**
+ * Sérialise proprement une structure Zoho (string|scalar|array|objets) en string.
+ */
+private function stringifyZohoPart(mixed $part): string
+{
+    if (is_string($part)) {
+        return $part;
+    }
+    if (is_scalar($part) || $part === null) {
+        return (string)$part;
+    }
+    // Tableaux/objets : JSON lisible, sans échapper l’unicode ni les slashs
+    return json_encode($part, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
 }
