@@ -253,68 +253,48 @@ class ZohoCreatorService extends ZohoTokenManagement {
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
-    public function update(string $report, int|string|null $id, array $attributes, array $additional_fields = []) : array {
-    try {
-        $this->ZohoServiceCheck();
+    public function update(string $report, int|string $id, array $attributes, array $additional_fields = []) : array {
+        try {
+            $this->ZohoServiceCheck();
+            //required variables check
+            if (($report === null || $report === "")) {
+                //? Log error if request fails
+                throw new Exception("Missing required report parameter", 503);
+            }
 
-        if (empty($report)) {
-            throw new Exception("Missing required report parameter", 503);
+            //URL
+            $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
+
+            $json_body = ["data" => $attributes];
+            $json_body["result"] = ["fields" => $additional_fields];
+
+            //REQUEST
+            $response = Http::withHeaders(array_merge($this->getHeaders(),['Content-type' => 'application/json']))->patch(
+                $full_url,
+                $json_body
+            );
+            
+            //CHECK RESPONSE
+            $this->ZohoResponseCheck($response,"ZohoCreator.report.UPDATE");
+            
+            //RETURN
+            //return $response->json();
+            //return multiple
+            if(isset($response->json()["result"])) {
+                $return_response = [];
+                foreach($response->json()["result"] as $result) {
+                    $return_response[] = $result["data"];
+                }
+                return $return_response;
+            }
+            return $response->json()["data"];
+        } catch (Exception $e) {
+            $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
+            Log::error($log_error);
+            throw new Exception($log_error, 503);
         }
-
-        // 📦 Mode BULK si $id est null et $attributes contient un tableau d'enregistrements avec ID
-        $isBulk = is_null($id) && isset($attributes[0]) && is_array($attributes[0]) && isset($attributes[0]['ID']);
-
-        if ($isBulk) {
-            Log::channel('package_model_log')->info("🔄 Mode bulk détecté pour update sur $report");
-
-            $full_url = $this->data_base_url . "/report/" . $report;
-
-            $json_body = [
-                "data" => $attributes,
-                "result" => ["fields" => $additional_fields]
-            ];
-
-            $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-Type' => 'application/json']))
-                ->patch($full_url, $json_body);
-
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE_BULK");
-
-            return isset($response->json()["result"])
-                ? array_map(fn($r) => $r["data"], $response->json()["result"])
-                : $response->json()["data"];
-        }
-
-        // ✏️ Mode unitaire
-        if (!isset($id)) {
-            throw new Exception("Missing ID for single record update", 503);
-        }
-
-        Log::channel('package_model_log')->info("✏️ Mode unitaire détecté pour update de l’ID $id sur $report");
-
-        $full_url = $this->data_base_url . "/report/" . $report . "/" . $id;
-
-        $json_body = [
-            "data" => $attributes,
-            "result" => ["fields" => $additional_fields]
-        ];
-
-        $response = Http::withHeaders(array_merge($this->getHeaders(), ['Content-Type' => 'application/json']))
-            ->patch($full_url, $json_body);
-
-        $this->ZohoResponseCheck($response, "ZohoCreator.report.UPDATE");
-
-        return isset($response->json()["result"])
-            ? array_map(fn($r) => $r["data"], $response->json()["result"])
-            : $response->json()["data"];
-
-    } catch (Exception $e) {
-        $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-        Log::error($log_error);
-        throw new Exception($log_error, 503);
     }
-}
 
-    
     /**
      * 🌐🔐 upload()
      *
