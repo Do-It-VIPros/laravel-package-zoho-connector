@@ -10,6 +10,7 @@ use Agencedoit\ZohoConnector\Jobs\ZohoCreatorBulkProcess;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 use \Exception;
 use ZipArchive;
@@ -45,53 +46,107 @@ class ZohoCreatorService extends ZohoTokenManagement
      *
      * @throws \Exception If an error occurs during the process, it logs the error.
      */
+ 
+
     public function get(string $report, string|array $criteria = "", string &$cursor = ""): array|string
     {
+        $traceId = Str::uuid()->toString();
+
         try {
             $this->ZohoServiceCheck();
-            //required variables check
-            if (($report === null || $report === "")) {
-                //? Log error if request fails
+
+            if (empty($report)) {
                 throw new Exception("Missing required report parameter", 503);
             }
 
-            //URL
-            $full_url = $this->data_base_url . "/report/" . $report;
+            // URL
+            $full_url = "{$this->data_base_url}/report/{$report}";
 
-            //PARAMETERS
-            $parmeters = [];
-            $parmeters['max_records'] = 1000;
-            $parmeters['field_config'] = "all";
-            $criteria_as_string = (gettype($criteria) == "array" ? $this->criteriaFormater($criteria) : $criteria);
-            if ($criteria_as_string != null && $criteria_as_string != "") {
-                $parmeters['criteria'] = $criteria_as_string;
+            // PARAMETERS
+            $parameters = [
+                'max_records'   => 1000,
+                'field_config'  => 'all',
+            ];
+
+            $criteria_as_string = is_array($criteria)
+                ? $this->criteriaFormater($criteria)
+                : $criteria;
+
+            if (!empty($criteria_as_string)) {
+                $parameters['criteria'] = $criteria_as_string;
             }
 
-            //HEADERS
+            // HEADERS
             $headers = $this->getHeaders();
-            if ($cursor != "") {
-                $headers["record_cursor"] = $cursor;
+            if (!empty($cursor)) {
+                $headers['record_cursor'] = $cursor;
             }
 
-            //REQUEST
-            $response = Http::withHeaders($headers)->timeout(config('zohoconnector.request_timeout'))->get(
-                $full_url,
-                $parmeters
-            );
+            // 🧾 Log AVANT l’appel HTTP
+            Log::channel('zohoconnector_log')->info('[Zoho:get] Request', [
+                'trace_id'   => $traceId,
+                'report'     => $report,
+                'url'        => $full_url,
+                'cursor_in'  => $cursor,
+                // aperçu des params/criteria (tronqués pour éviter d’inonder les logs)
+                'params'     => [
+                    'max_records'  => $parameters['max_records'],
+                    'field_config' => $parameters['field_config'],
+                    'criteria'     => Str::limit((string)($parameters['criteria'] ?? ''), 1000, '…'),
+                ],
+                // headers “safe” (on n’expose pas Authorization)
+                'headers'    => collect($headers)
+                    ->except(['Authorization', 'authorization', 'X-Auth-Token', 'x-auth-token'])
+                    ->all(),
+                'timeout'    => config('zohoconnector.request_timeout'),
+            ]);
 
-            //CHECK RESPONSE
-            $this->ZohoResponseCheck($response, "ZohoCreator.report.READ");
+            // REQUEST
+            $response = Http::withHeaders($headers)
+                ->timeout(config('zohoconnector.request_timeout'))
+                ->get($full_url, $parameters);
 
-            // set the cursor if exist or reset
-            $cursor = (array_key_exists("record_cursor", $response->headers()) ? $response->headers()["record_cursor"][0] : "");
+            // CHECK RESPONSE
+            $this->ZohoResponseCheck($response, 'ZohoCreator.report.READ');
 
-            return $response->json()["data"];
+            // Cursor sortant (robuste)
+            $respHeaders = $response->headers();
+            $newCursor = '';
+            if (isset($respHeaders['record_cursor'][0])) {
+                $newCursor = (string)$respHeaders['record_cursor'][0];
+            } elseif (isset($respHeaders['record_cursor']) && is_string($respHeaders['record_cursor'])) {
+                $newCursor = $respHeaders['record_cursor'];
+            }
+            $cursor = $newCursor;
+
+            // Log succès (léger)
+            Log::channel('zohoconnector_log')->info('[Zoho:get] Success', [
+                'trace_id'   => $traceId,
+                'report'     => $report,
+                'cursor_out' => $cursor,
+                'http'       => [
+                    'status' => $response->status(),
+                ],
+            ]);
+
+            return $response->json()['data'] ?? [];
         } catch (Exception $e) {
-            $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
-            throw new Exception($log_error, 503);
+            // 🔥 Log d’erreur enrichi (conserve le contexte clé)
+            Log::channel('zohoconnector_log')->error('[Zoho:get] Error', [
+                'trace_id'   => $traceId,
+                'report'     => $report ?? null,
+                'url'        => $full_url ?? null,
+                'cursor_in'  => $cursor ?? null,
+                'exception'  => $e->getMessage(),
+            ]);
+
+            throw new Exception(
+                "Error in get for report={$report}, cursor_in={$cursor}: " . $e->getMessage(),
+                503
+            );
         }
     }
+
 
     /**
      * 🌐🔐 getAll()
@@ -127,7 +182,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $found_datas;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -159,6 +214,13 @@ class ZohoCreatorService extends ZohoTokenManagement
 
             $full_url = $this->data_base_url . "/report/" . $report . "/" . $object_id;
 
+            // 🧾 Log avant l’appel HTTP (utile si ça plante dans ZohoResponseCheck)
+            Log::channel('zohoconnector_log')->info('[Zoho:getByID] Request', [
+                'report'    => $report,
+                'object_id' => $object_id,
+                'url'       => $full_url,
+            ]);
+
             $response = Http::withHeaders($this->getHeaders())->get(
                 $full_url,
                 [
@@ -171,7 +233,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json();
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -237,7 +299,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["data"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -357,7 +419,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             ];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -441,7 +503,7 @@ class ZohoCreatorService extends ZohoTokenManagement
                 unlink($tmp_file);
             }
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -492,12 +554,12 @@ class ZohoCreatorService extends ZohoTokenManagement
             );
 
             //CHECK RESPONSE
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $response);
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $response);
             $this->ZohoResponseCheck($response, "Zohocreator.customapi.EXECUTE");
             return $response;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -546,7 +608,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -600,7 +662,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["details"]["id"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -641,7 +703,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return ($response->json());
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -671,7 +733,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return ($bulk_infos != "" && $bulk_infos["details"]["status"] == "Completed");
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -720,7 +782,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $zip_location;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -757,7 +819,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $bulk_history->id;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -784,7 +846,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $bulk_infos;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -810,7 +872,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return ($bulk_infos != "" && $bulk_infos["details"]["status"] == "Completed");
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -837,7 +899,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $bulk_download_path;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -872,7 +934,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return "OK";
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -910,7 +972,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["forms"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -948,7 +1010,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["fields"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -984,7 +1046,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["reports"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -1020,7 +1082,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $response->json()["pages"];
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -1055,7 +1117,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $extracted_location . "/" . $report . "_" . $bulk_id . ".csv";;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -1095,7 +1157,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $json_location;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
@@ -1118,7 +1180,7 @@ class ZohoCreatorService extends ZohoTokenManagement
             return $formated_criterias;
         } catch (Exception $e) {
             $log_error = 'Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage();
-            Log::error($log_error);
+            Log::channel('zohoconnector_log')->error($log_error);
             throw new Exception($log_error, 503);
         }
     }
