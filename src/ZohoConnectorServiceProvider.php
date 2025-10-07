@@ -19,6 +19,11 @@ class ZohoConnectorServiceProvider extends ServiceProvider
         $this->app->singleton(ZohoCreatorService::class, function ($app) {
             return new ZohoCreatorService();
         });
+            $this->mergeConfigFrom(
+            __DIR__ . '/../config/zohoconnector_log.php', 
+            'logging.channels.zohoconnector_log' 
+        );
+
         AliasLoader::getInstance([
             'ZohoCreatorApi' => ZohoCreatorFacade::class,
         ]);

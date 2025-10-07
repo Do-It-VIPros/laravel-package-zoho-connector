@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 
 use Agencedoit\ZohoConnector\Services\ZohoCreatorService;
-use ZohoCreatorApi;
+use Agencedoit\ZohoConnector\Facades\ZohoCreatorFacade as ZohoCreatorApi;
+
 
 use \Exception;
 
@@ -54,7 +55,7 @@ class ZohoController extends Controller
             return redirect()->away($url . '?' . http_build_query($queryParams));
 
         }catch (Exception $e) {
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return $e;
         }
 
@@ -88,7 +89,7 @@ class ZohoController extends Controller
             return (config('app.env') != 'production' ? redirect()->action([ZohoController::class, 'test_connexion']): "Token is now generated, you can now leave this page." );
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return $e->getMessage();
         }
 
@@ -114,7 +115,7 @@ class ZohoController extends Controller
             return redirect()->action([ZohoController::class, 'test_connexion']);
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
-            Log::error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return $e->getMessage();
         }
     }
