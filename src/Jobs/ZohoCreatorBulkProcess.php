@@ -69,7 +69,7 @@ class ZohoCreatorBulkProcess implements ShouldQueue
             $bulk_history->step = "finished";
             $bulk_history->save();
         } catch (Exception $e) {
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
         }    
     }
 }

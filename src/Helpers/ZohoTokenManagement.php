@@ -46,7 +46,7 @@ class ZohoTokenManagement {
                 return true;
             }
             
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return false;
         }
     }
@@ -94,7 +94,7 @@ class ZohoTokenManagement {
                 return 'mock_access_token_for_testing';
             }
             
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return null;
         }
     }
@@ -123,7 +123,7 @@ class ZohoTokenManagement {
                 'token_duration' => $token_datas['expires_in'],
             ]);
         } catch (Exception $e) {
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
         }
     }
 
@@ -173,7 +173,7 @@ class ZohoTokenManagement {
             return $this->getToken();
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return null;
         }
     }
@@ -210,7 +210,7 @@ class ZohoTokenManagement {
             return $this->isReady();
         } catch (Exception $e) {
             //? Log any exceptions that occur during token request
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return false;
         }
     }
@@ -234,7 +234,7 @@ class ZohoTokenManagement {
                 'environment' => config('zohoconnector.environment')
             ];
         } catch (Exception $e) {
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             return [];
         }
     }
@@ -253,7 +253,7 @@ class ZohoTokenManagement {
         try {
             ZohoConnectorToken::truncate();
         } catch (Exception $e) {
-            Log::channel('zohoconnector')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('Error on ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
         }
     }
 }

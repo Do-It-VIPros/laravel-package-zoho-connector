@@ -28,7 +28,7 @@ trait ZohoServiceChecker
             && config('zohoconnector.environment') != "stage"
             && config('zohoconnector.environment') != "production"
         ) {
-            Log::channel('zohoconnector')->error('zohoconnector.environment is not set correctly. (' . config('zohoconnector.environment') . '). Choices are : empty,development, stage or production.');
+            Log::channel('zohoconnector_log')->error('zohoconnector.environment is not set correctly. (' . config('zohoconnector.environment') . '). Choices are : empty,development, stage or production.');
             throw new Exception('ZohoCreatorService is not ready. zohoconnector.environment is not correct.');
         }
     }
@@ -60,7 +60,7 @@ trait ZohoServiceChecker
                 throw new Exception($message);
             }
         } catch (Exception $e) {
-            Log::channel('zohoconnector')->error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
+            Log::channel('zohoconnector_log')->error('❌ Erreur dans ' . get_class($this) . '::' . __FUNCTION__ . ' => ' . $e->getMessage());
             throw new Exception($e->getMessage(), 503);
         }
     }
