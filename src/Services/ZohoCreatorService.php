@@ -107,15 +107,24 @@ class ZohoCreatorService extends ZohoTokenManagement
                 ->get($full_url, $parameters);
 
             $payload = $response->json();
+            $httpStatus = $response->status();
+            $zohoCode = is_array($payload) && isset($payload['code'])
+                ? (int) $payload['code']
+                : null;
+            $isAllowedNoRecordsStatus = $response->successful()
+                || (
+                    $httpStatus >= 400
+                    && $httpStatus < 500
+                    && ! in_array($httpStatus, [401, 403, 429], true)
+                );
 
             // Sur un GET de report, Zoho utilise le code 3100 pour signaler
             // qu'aucun record ne correspond aux critères. Ce résultat métier
             // doit rester distinct d'une erreur technique afin que l'appelant
             // puisse appliquer sa propre politique de retry.
             if (
-                is_array($payload)
-                && (int) ($payload['code'] ?? 0) === 3100
-                && in_array($response->status(), [200, 404], true)
+                $zohoCode === 3100
+                && $isAllowedNoRecordsStatus
             ) {
                 $cursor = '';
 
@@ -124,7 +133,7 @@ class ZohoCreatorService extends ZohoTokenManagement
                     'report' => $report,
                     'cursor_out' => $cursor,
                     'http' => [
-                        'status' => $response->status(),
+                        'status' => $httpStatus,
                     ],
                     'zoho_code' => 3100,
                 ]);
@@ -163,6 +172,8 @@ class ZohoCreatorService extends ZohoTokenManagement
                 'report'     => $report ?? null,
                 'url'        => $full_url ?? null,
                 'cursor_in'  => $cursor ?? null,
+                'http'       => isset($response) ? ['status' => $response->status()] : null,
+                'zoho_code'  => isset($payload) && is_array($payload) ? ($payload['code'] ?? null) : null,
                 'exception'  => $e->getMessage(),
             ]);
 
