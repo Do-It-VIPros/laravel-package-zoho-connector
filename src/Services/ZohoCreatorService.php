@@ -18,6 +18,8 @@ use ZipArchive;
 class ZohoCreatorService extends ZohoTokenManagement
 {
 
+    private const NO_RECORDS_ZOHO_CODES = [3100, 9280];
+
     use ZohoServiceChecker;
 
     public function __construct()
@@ -118,12 +120,13 @@ class ZohoCreatorService extends ZohoTokenManagement
                     && ! in_array($httpStatus, [401, 403, 429], true)
                 );
 
-            // Sur un GET de report, Zoho utilise le code 3100 pour signaler
-            // qu'aucun record ne correspond aux critères. Ce résultat métier
-            // doit rester distinct d'une erreur technique afin que l'appelant
-            // puisse appliquer sa propre politique de retry.
+            // Sur un GET de report, Zoho utilise le code 9280 (API v2.1),
+            // ou historiquement 3100, pour signaler qu'aucun record ne
+            // correspond aux critères. Ce résultat métier doit rester distinct
+            // d'une erreur technique afin que l'appelant puisse appliquer sa
+            // propre politique de retry.
             if (
-                $zohoCode === 3100
+                in_array($zohoCode, self::NO_RECORDS_ZOHO_CODES, true)
                 && $isAllowedNoRecordsStatus
             ) {
                 $cursor = '';
@@ -135,7 +138,7 @@ class ZohoCreatorService extends ZohoTokenManagement
                     'http' => [
                         'status' => $httpStatus,
                     ],
-                    'zoho_code' => 3100,
+                    'zoho_code' => $zohoCode,
                 ]);
 
                 return [];
