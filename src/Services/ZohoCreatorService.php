@@ -106,6 +106,32 @@ class ZohoCreatorService extends ZohoTokenManagement
                 ->timeout(config('zohoconnector.request_timeout'))
                 ->get($full_url, $parameters);
 
+            $payload = $response->json();
+
+            // Sur un GET de report, Zoho utilise le code 3100 pour signaler
+            // qu'aucun record ne correspond aux critères. Ce résultat métier
+            // doit rester distinct d'une erreur technique afin que l'appelant
+            // puisse appliquer sa propre politique de retry.
+            if (
+                is_array($payload)
+                && (int) ($payload['code'] ?? 0) === 3100
+                && in_array($response->status(), [200, 404], true)
+            ) {
+                $cursor = '';
+
+                Log::channel('zohoconnector_log')->info('[Zoho:get] Aucun record pour les critères', [
+                    'trace_id' => $traceId,
+                    'report' => $report,
+                    'cursor_out' => $cursor,
+                    'http' => [
+                        'status' => $response->status(),
+                    ],
+                    'zoho_code' => 3100,
+                ]);
+
+                return [];
+            }
+
             // CHECK RESPONSE
             $this->ZohoResponseCheck($response, 'ZohoCreator.report.READ');
 
@@ -129,7 +155,7 @@ class ZohoCreatorService extends ZohoTokenManagement
                 ],
             ]);
 
-            return $response->json()['data'] ?? [];
+            return $payload['data'] ?? [];
         } catch (Exception $e) {
             // 🔥 Log d’erreur enrichi (conserve le contexte clé)
             Log::channel('zohoconnector_log')->error('[Zoho:get] Error', [
